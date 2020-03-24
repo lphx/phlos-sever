@@ -1,6 +1,6 @@
-package cn.phlos.pattern.factory;
+package cn.phlos.paycode.ask.factory;
 
-import cn.phlos.pattern.strategy.PayStrategy;
+import cn.phlos.paycode.ask.strategy.PayStrategy;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;

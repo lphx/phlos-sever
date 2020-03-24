@@ -1,4 +1,4 @@
-package cn.phlos.callback.template;
+package cn.phlos.paycode.callback.template;
 
 import cn.phlos.constant.PayConstant;
 import cn.phlos.mapper.PaymentTransactionLogMapper;

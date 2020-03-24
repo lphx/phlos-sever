@@ -1,6 +1,6 @@
-package cn.phlos.callback.template.unionpay;
+package cn.phlos.paycode.callback.template.impl;
 
-import cn.phlos.callback.template.AbstractPayCallbackTemplate;
+import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
 import cn.phlos.constant.PayConstant;
 import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;

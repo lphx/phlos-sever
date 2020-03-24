@@ -1,6 +1,6 @@
-package cn.phlos.callback.template.factory;
+package cn.phlos.paycode.callback.template.factory;
 
-import cn.phlos.callback.template.AbstractPayCallbackTemplate;
+import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
 import cn.phlos.util.core.utils.SpringContextUtil;
 
 /**

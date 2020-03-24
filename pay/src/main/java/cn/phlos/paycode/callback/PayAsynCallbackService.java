@@ -1,7 +1,7 @@
-package cn.phlos.callback;
+package cn.phlos.paycode.callback;
 
-import cn.phlos.callback.template.AbstractPayCallbackTemplate;
-import cn.phlos.callback.template.factory.TemplateFactory;
+import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
+import cn.phlos.paycode.callback.template.factory.TemplateFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
