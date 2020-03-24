@@ -1,0 +1,39 @@
+
+###服务启动端口号
+server:
+  port: 8600
+
+
+spring:
+  redis:
+    host: 47.96.239.32
+    port: 6379
+    password: li15775063262
+    pool:
+      max-idle: 100
+      min-idle: 1
+      max-active: 1000
+      max-wait: -1
+  ###数据库相关连接
+  datasource:
+    username: root
+    password: Li15775063262!
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://47.96.239.32:3306/meite_pay?useUnicode=true&characterEncoding=utf-8&useSSL=false
+
+####打印MyBatias日志
+logging:
+  level:
+    ### 开发环境使用DEBUG 生产环境info或者error
+    com.mayikt.member.mapper: DEBUG
+
+###多线程配置
+threadPool:
+  ###核心线程数
+  corePoolSize: 10
+  ###最大线程数
+  maxPoolSize: 20
+  ##  队列容量
+  queueCapacity: 16
+
+
