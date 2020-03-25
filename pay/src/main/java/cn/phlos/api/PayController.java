@@ -12,6 +12,7 @@ import cn.phlos.dto.out.PaymentChannelDTO;
 import cn.phlos.service.PayContextService;
 import cn.phlos.service.PaymentChannelService;
 import cn.phlos.service.PaymentTransacInfoService;
+import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
 import cn.phlos.util.constants.Constants;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +33,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @description: 支付网站
  */
 @Controller
-public class PayController {
+public class PayController extends BaseApiService<JSONObject> {
 	@Autowired
 	private PaymentTransacInfoService payMentTransacInfoService;
 	@Autowired
@@ -65,12 +66,12 @@ public class PayController {
 
 	@GetMapping("/refund")
 	@ResponseBody
-	public String refund(String paymentId){
+	public BaseResponse<JSONObject> refund(String paymentId){
 		BaseResponse<JSONObject> refund = payContextService.refund(paymentId);
 		if(!isSuccess(refund)){
-			return PayConstant.YINLIAN_RESULT_FAIL;
+			return setResultError(refund.getMsg());
 		}
-		return refund.getData().getString("data");
+		return refund;
 	}
 
 	/**

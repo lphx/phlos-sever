@@ -27,12 +27,12 @@ public class PayAsynCallbackService {
         return abstractPayCallbackTemplate.asyncCallBack(req, resp);
     }
 
-    @RequestMapping("/unionPayAsynrRefund")
+   /* @RequestMapping("/unionPayAsynrRefund")
     public String unionPayAsynrRefund(HttpServletRequest req, HttpServletResponse resp) {
         AbstractPayCallbackTemplate abstractPayCallbackTemplate = TemplateFactory.getPayCallbackTemplate(UNIONPAYCALLBACK_TEMPLATE);
         //abstractPayCallbackTemplate.getPayParameter(UNIONPAYCALLBACK_TEMPLATE);
         return abstractPayCallbackTemplate.refundCallBack(req, resp);
-    }
+    }*/
 
 
 

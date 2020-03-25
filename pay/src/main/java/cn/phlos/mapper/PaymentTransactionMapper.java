@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface PaymentTransactionMapper {
 	@Options(useGeneratedKeys = true, keyProperty = "id")
-	@Insert("INSERT INTO `payment_transaction` VALUES (null, #{payAmount}, '0', #{userId}, #{orderId}, null, null, now(), null, now(),null,#{paymentId},null,#{tradeNo});")
+	@Insert("INSERT INTO `payment_transaction` VALUES (null, #{payAmount}, '0', #{userId}, #{orderId}, null, null, now(), null, null,null,#{paymentId},null,null);")
 	public int insertPaymentTransaction(PaymentTransactionEntity paymentTransactionEntity);
 
 	@Select("SELECT ID AS ID ,pay_Amount AS payAmount,payment_Status AS paymentStatus,user_ID AS userId, order_Id AS orderId , created_Time as createdTime ,partypay_Id as partyPayId , payment_Id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo FROM payment_transaction WHERE ID=#{id};")

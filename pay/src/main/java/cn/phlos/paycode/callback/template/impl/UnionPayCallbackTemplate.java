@@ -10,6 +10,7 @@ import cn.unionpay.acp.sdk.SDKConstants;
 import cn.unionpay.acp.sdk.UnionPayBase;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -59,7 +60,6 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 			String orderId = reqParam.get("orderId"); // 获取后台通知的数据，其他字段也可用类似方式获取
 			reqParam.put("paymentId", orderId);
 			reqParam.put(PayConstant.RESULT_NAME, PayConstant.RESULT_PAYCODE_200);
-			reqParam.put("queryId",reqParam.get("queryId"));
 		}
 		LogUtil.writeLog("BackRcvResponse接收后台通知结束");
 		return reqParam;
@@ -74,6 +74,7 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 		String orderId = verifySignature.get("orderId"); // 获取后台通知的数据，其他字段也可用类似方式获取
 		String respCode = verifySignature.get("respCode");
 		String queryId = verifySignature.get("queryId");
+		String payStatus = verifySignature.get("payStatus");
 
 		// 判断respCode=00、A6后，对涉及资金类的交易，请再发起查询接口查询，确定交易成功后更新数据库。
 		System.out.println("orderId:" + orderId + ",respCode:" + respCode);
@@ -81,21 +82,26 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 		if (!(respCode.equals("00") || respCode.equals("A6"))) {
 			return failResult();
 		}
-		// 根据日志 手动补偿 使用支付id调用第三方支付接口查询
+		// 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的
 		PaymentTransactionEntity paymentTransaction = paymentTransactionMapper.selectByPaymentId(orderId);
-		if (paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_SUCCESS)) {
+		if (paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_SUCCESS)||paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_DELETE)) {
 			// 网络重试中，之前已经支付过
 			return successResult();
 		}
-		// 2.将状态改为已经支付成功
-		paymentTransactionMapper.updatePaymentStatus(PayConstant.PAY_STATUS_SUCCESS + "", orderId, "yinlian_pay",queryId);
+		// 2.将状态改为已经支付或者退款成功
+		Integer paymentStatus = PayConstant.PAY_STATUS_SUCCESS;
+		//如果是包含退款，就更新状态为5表示退款的订单
+		if(!StringUtils.isEmpty(payStatus) && payStatus.equals("refund")){
+			paymentStatus = PayConstant.PAY_STATUS_DELETE;
+		}
+		paymentTransactionMapper.updatePaymentStatus( paymentStatus+ "", orderId, "yinlian_pay",queryId);
 		// 3.调用积分服务接口增加积分(处理幂等性问题) MQ
 		//addMQIntegral(paymentTransaction); // 使用MQ
 		//int i = 1 / 0; // 支付状态还是为待支付状态但是 积分缺增加
 		return successResult();
 	}
 
-	@Override
+	/*@Override
 	@Transactional
 	public String asyncCallbackService(Map<String, String> verifySignature) {
 		String orderId = verifySignature.get("orderId"); // 获取后台通知的数据，其他字段也可用类似方式获取
@@ -119,7 +125,7 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 		//addMQIntegral(paymentTransaction); // 使用MQ
 		//int i = 1 / 0; // 支付状态还是为待支付状态但是 积分缺增加
 		return successResult();
-	}
+	}*/
 
 	/**
 	 * 基于MQ增加积分

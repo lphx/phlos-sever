@@ -1,16 +1,23 @@
 package cn.phlos.paycode.ask.strategy.impl;
 
+import cn.phlos.constant.PayConstant;
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.mapper.entity.PaymentChannelEntity;
 import cn.phlos.paycode.ask.strategy.PayStrategy;
+import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
+import cn.phlos.util.base.BaseApiService;
+import cn.phlos.util.base.BaseResponse;
 import cn.phlos.util.http.HttpClientUtils;
-import cn.phlos.util.twitter.SnowflakeIdUtils;
 import cn.unionpay.acp.sdk.AcpService;
 import cn.unionpay.acp.sdk.LogUtil;
 import cn.unionpay.acp.sdk.SDKConfig;
 import cn.unionpay.acp.sdk.UnionPayBase;
+import com.alibaba.fastjson.JSONObject;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 
 import java.text.SimpleDateFormat;
@@ -19,10 +26,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class UnionPayStrategy implements PayStrategy {
+public class UnionPayStrategy extends BaseApiService<JSONObject> implements PayStrategy {
 
-    @Value("${server.port}")
-    private String port;
+
+    @Autowired
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Override
     public String toPayHtml(PaymentChannelEntity paymentChannel, PaymentTransacDTO paymentTransacDTO) {
@@ -100,7 +108,9 @@ public class UnionPayStrategy implements PayStrategy {
     }
 
     @Override
-    public String refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO) {
+    public BaseResponse<JSONObject> refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO) {
+
+        //生成
 
         Map<String, String> data = new HashMap<String, String>();
 
@@ -116,7 +126,7 @@ public class UnionPayStrategy implements PayStrategy {
         /***商户接入参数***/
         data.put("merId", pymentChannel.getMerchantId());                //商户号码，请改成自己申请的商户号或者open上注册得来的777商户号测试
         data.put("accessType", "0");                         //接入类型，商户接入固定填0，不需修改		
-        data.put("orderId", SnowflakeIdUtils.nextId());          //商户订单号，8-40位数字字母，不能含“-”或“_”，可以自行定制规则，重新产生，不同于原消费
+        data.put("orderId", paymentTransacDTO.getPaymentId());          //商户订单号，8-40位数字字母，不能含“-”或“_”，可以自行定制规则，重新产生，不同于原消费
         data.put("txnTime", format(paymentTransacDTO.getCreatedTime()));      //订单发送时间，格式为yyyyMMddHHmmss，必须取当前时间，否则会报txnTime无效
         data.put("currencyCode", "156");                     //交易币种（境内商户一般是156 人民币）		
         data.put("txnAmt", paymentTransacDTO.getPayAmount()+"");                          //****退货金额，单位分，不要带小数点。退货金额小于等于原消费金额，当小于的时候可以多次退货至退货累计金额等于原消费金额
@@ -149,26 +159,47 @@ public class UnionPayStrategy implements PayStrategy {
                 }else{
                     //其他应答码为失败请排查原因
                     //TODO
+                    return setResultError("应答码为失败请排查原因");
                 }
             }else{
                 LogUtil.writeErrorLog("验证签名失败");
                 //TODO 检查验证签名失败的原因
+                return setResultError("验证签名失败");
             }
         }else{
             //未返回正确的http状态
             LogUtil.writeErrorLog("未获取到返回报文或返回http状态码非200");
+            return setResultError("验证签名失败");
         }
-        String httpUrl = "http://127.0.0.1:8600/unionPayAsynrRefund";
-        String post = HttpClientUtils.doPost(httpUrl, rspData);
+        //新增退款的字段
+        rspData.put("payStatus","refund");
+        //调用接口更新交易信息--异步
+        threadPoolTaskExecutor.execute(new UnionPayStrategy.SynCallbackThread(pymentChannel.getSyncUrl(),rspData));
 //        String reqMessage = UnionPayBase.genHtmlResult(reqData);
-       String rspMessage = UnionPayBase.genHtmlResult(rspData);
+       //String rspMessage = UnionPayBase.genHtmlResult(rspData);
         //resp.getWriter().write("</br>请求报文:<br/>"+reqMessage+"<br/>" + "应答报文:</br>"+rspMessage+"");
-        return post;
+        return setResultSuccess(PayConstant.YINLIAN_RESULT_SUCCESS);
     }
 
     private String format(Date timeDate) {
         String date = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(timeDate);
         return date;
+    }
+
+    @Data
+    //生成全参数构造函数
+    @AllArgsConstructor
+    class SynCallbackThread implements Runnable{
+
+        private String url;
+        private Map<String, String> rspData;
+
+
+        @Override
+        public void run() {
+            String post = HttpClientUtils.doPost(url, rspData);
+            log.info("异步调用银联退款接口{}"+post);
+        }
     }
 
 }

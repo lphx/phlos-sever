@@ -45,8 +45,8 @@ public abstract class AbstractPayCallbackTemplate {
     @Transactional
     public abstract String asyncService(Map<String, String> verifySignature);
 
-    @Transactional
-    public abstract String asyncCallbackService(Map<String, String> verifySignature);
+//    @Transactional
+//    public abstract String asyncCallbackService(Map<String, String> verifySignature);
 
     public abstract String failResult();
 
@@ -99,7 +99,7 @@ public abstract class AbstractPayCallbackTemplate {
      * 3. 执行的异步回调业务逻辑<br>
      *
      */
-    @Transactional
+   /* @Transactional
     public String refundCallBack(HttpServletRequest req, HttpServletResponse resp) {
         // 1. 验证报文参数 相同点 获取所有的请求参数封装成为map集合 并且进行参数验证
         Map<String, String> verifySignatureMap = verifySignature(req, resp);
@@ -114,9 +114,9 @@ public abstract class AbstractPayCallbackTemplate {
         threadPoolTaskExecutor.execute(new PayLogThread(paymentId,verifySignatureMap));
 
         // 5.执行的异步回调业务逻辑
-        return asyncCallbackService(verifySignatureMap);
+        return asyncService(verifySignatureMap);
 
-    }
+    }*/
 
     private void payLog(String paymentId,Map<String, String> verifySignature){
         PaymentTransactionLogEntity paymentTransactionLogEntity = new PaymentTransactionLogEntity();

@@ -2,6 +2,8 @@ package cn.phlos.paycode.ask.strategy;
 
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.mapper.entity.PaymentChannelEntity;
+import cn.phlos.util.base.BaseResponse;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * 支付接口共同实现行为算法
@@ -27,6 +29,6 @@ public interface PayStrategy {
      *            支付参数
      * @return
      */
-    public String refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO);
+    public BaseResponse<JSONObject> refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO);
 
 }

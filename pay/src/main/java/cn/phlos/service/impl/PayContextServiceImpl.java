@@ -52,20 +52,19 @@ public class PayContextServiceImpl extends BaseApiService<JSONObject> implements
     @Override
     public BaseResponse<JSONObject> refund(String paymentId) {
 
-        //1.根据paymentId查找出要退款的信息
+        //1.根据paymentId查找出要退款的信息--前提是以支付的订单
         BaseResponse<PaymentTransacDTO> paymentTransacDTOBaseResponse = payMentTransacInfoService.refundByPayMent(paymentId);
         if (!isSuccess(paymentTransacDTOBaseResponse)){
             return setResultError(paymentTransacDTOBaseResponse.getMsg());
         }
+        //2.获取到支付的信息和支付渠道的信息
         PaymentTransacDTO paymentTransacDTO = paymentTransacDTOBaseResponse.getData();
         PaymentChannelEntity paymentChannelEntity = paymentChannelMapper.selectBychannelId(paymentTransacDTO.getPaymentChannel());
-        //2.执行具体的支付退款渠道进行退款
+        //3.执行具体的支付退款渠道进行退款
         String classAddres = paymentChannelEntity.getClassAddres();
         PayStrategy payStrategy = StrategyFactory.getPayStrategy(classAddres);
-        String refund = payStrategy.refund(paymentChannelEntity, paymentTransacDTO);
-        // 3.直接返回data
-        JSONObject data = new JSONObject();
-        data.put("data", refund);
-        return setResultSuccess(data);
+        BaseResponse<JSONObject> refund = payStrategy.refund(paymentChannelEntity, paymentTransacDTO);
+        // 4.直接返回data
+        return refund;
     }
 }

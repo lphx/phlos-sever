@@ -9,6 +9,7 @@ import cn.phlos.util.base.BaseResponse;
 import cn.phlos.util.core.bean.ConvertBeanUtils;
 import cn.phlos.util.token.GenerateToken;
 
+import cn.phlos.util.twitter.SnowflakeIdUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,14 @@ public class PaymentTransacInfoServiceImpl extends BaseApiService<PaymentTransac
         if (paymentTransactionEntity.getPaymentStatus() != 1){
             return setResultError("该订单处于未付款状态");
         }
-        return setResultSuccess(ConvertBeanUtils.doToDto(paymentTransactionEntity, PaymentTransacDTO.class));
+        //生成新的交易信息
+        PaymentTransactionEntity paymentEntity = new PaymentTransactionEntity();
+        paymentEntity.setOrderId(paymentTransactionEntity.getOrderId());
+        paymentEntity.setPayAmount(paymentTransactionEntity.getPayAmount());
+        paymentEntity.setUserId(paymentTransactionEntity.getUserId());
+        paymentEntity.setPaymentId(SnowflakeIdUtils.nextId());
+        paymentTransactionMapper.insertPaymentTransaction(paymentEntity);
+
+        return setResultSuccess(ConvertBeanUtils.doToDto(paymentEntity, PaymentTransacDTO.class));
     }
 }
