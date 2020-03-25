@@ -45,4 +45,17 @@ public class PaymentTransacInfoServiceImpl extends BaseApiService<PaymentTransac
         //4.do转dto返回数据给控制层
         return setResultSuccess(ConvertBeanUtils.doToDto(paymentTransactionEntity, PaymentTransacDTO.class));
     }
+
+    @Override
+    public BaseResponse<PaymentTransacDTO> refundByPayMent(String payment) {
+        //1.查询已支付的信息
+        PaymentTransactionEntity paymentTransactionEntity = paymentTransactionMapper.selectByPaymentId(payment);
+        if (paymentTransactionEntity == null){
+            return setResultError("未查询到支付信息");
+        }
+        if (paymentTransactionEntity.getPaymentStatus() != 1){
+            return setResultError("该订单处于未付款状态");
+        }
+        return setResultSuccess(ConvertBeanUtils.doToDto(paymentTransactionEntity, PaymentTransacDTO.class));
+    }
 }

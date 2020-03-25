@@ -84,6 +84,8 @@ public class SDKConstants {
 	/** memeber variable: equal mark. */
 	public static final String EQUAL = "=";
 
+	public static final String TOWCOLON = ":";
+
 	/** memeber variable: operation ne. */
 	public static final String NE = "!=";
 

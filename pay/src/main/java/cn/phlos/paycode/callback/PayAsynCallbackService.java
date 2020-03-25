@@ -2,6 +2,7 @@ package cn.phlos.paycode.callback;
 
 import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
 import cn.phlos.paycode.callback.template.factory.TemplateFactory;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +23,17 @@ public class PayAsynCallbackService {
     @RequestMapping("/unionPayAsynCallback")
     public String unionPayAsynCallback(HttpServletRequest req, HttpServletResponse resp) {
         AbstractPayCallbackTemplate abstractPayCallbackTemplate = TemplateFactory.getPayCallbackTemplate(UNIONPAYCALLBACK_TEMPLATE);
+        //abstractPayCallbackTemplate.getPayParameter(UNIONPAYCALLBACK_TEMPLATE);
         return abstractPayCallbackTemplate.asyncCallBack(req, resp);
     }
+
+    @RequestMapping("/unionPayAsynrRefund")
+    public String unionPayAsynrRefund(HttpServletRequest req, HttpServletResponse resp) {
+        AbstractPayCallbackTemplate abstractPayCallbackTemplate = TemplateFactory.getPayCallbackTemplate(UNIONPAYCALLBACK_TEMPLATE);
+        //abstractPayCallbackTemplate.getPayParameter(UNIONPAYCALLBACK_TEMPLATE);
+        return abstractPayCallbackTemplate.refundCallBack(req, resp);
+    }
+
+
 
 }

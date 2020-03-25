@@ -19,4 +19,14 @@ public interface PayStrategy {
      */
     public String toPayHtml(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO);
 
+    /**
+     *
+     * @param pymentChannel
+     *            渠道参数
+     * @param paymentTransacDTO
+     *            支付参数
+     * @return
+     */
+    public String refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO);
+
 }

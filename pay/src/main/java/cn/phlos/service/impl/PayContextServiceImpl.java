@@ -10,6 +10,7 @@ import cn.phlos.service.PaymentTransacInfoService;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,26 @@ public class PayContextServiceImpl extends BaseApiService<JSONObject> implements
         // 4.直接返回html
         JSONObject data = new JSONObject();
         data.put("payHtml", payHtml);
+        return setResultSuccess(data);
+    }
+
+    @Override
+    public BaseResponse<JSONObject> refund(String paymentId) {
+
+        //1.根据paymentId查找出要退款的信息
+        BaseResponse<PaymentTransacDTO> paymentTransacDTOBaseResponse = payMentTransacInfoService.refundByPayMent(paymentId);
+        if (!isSuccess(paymentTransacDTOBaseResponse)){
+            return setResultError(paymentTransacDTOBaseResponse.getMsg());
+        }
+        PaymentTransacDTO paymentTransacDTO = paymentTransacDTOBaseResponse.getData();
+        PaymentChannelEntity paymentChannelEntity = paymentChannelMapper.selectBychannelId(paymentTransacDTO.getPaymentChannel());
+        //2.执行具体的支付退款渠道进行退款
+        String classAddres = paymentChannelEntity.getClassAddres();
+        PayStrategy payStrategy = StrategyFactory.getPayStrategy(classAddres);
+        String refund = payStrategy.refund(paymentChannelEntity, paymentTransacDTO);
+        // 3.直接返回data
+        JSONObject data = new JSONObject();
+        data.put("data", refund);
         return setResultSuccess(data);
     }
 }

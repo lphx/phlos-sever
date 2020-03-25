@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import cn.phlos.constant.PayConstant;
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.dto.out.PaymentChannelDTO;
 import cn.phlos.service.PayContextService;
@@ -17,9 +18,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.alibaba.fastjson.JSONObject;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 
 /**
@@ -58,6 +61,16 @@ public class PayController {
 		model.addAttribute("paymentChanneList", paymentChanneList);
 		model.addAttribute("payToken", payToken);
 		return "index";
+	}
+
+	@GetMapping("/refund")
+	@ResponseBody
+	public String refund(String paymentId){
+		BaseResponse<JSONObject> refund = payContextService.refund(paymentId);
+		if(!isSuccess(refund)){
+			return PayConstant.YINLIAN_RESULT_FAIL;
+		}
+		return refund.getData().getString("data");
 	}
 
 	/**
@@ -113,5 +126,7 @@ public class PayController {
 		model.addAttribute("error", errorMsg);
 
 	}
+
+
 
 }

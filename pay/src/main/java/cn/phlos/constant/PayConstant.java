@@ -14,6 +14,10 @@ public interface PayConstant {
      */
     Integer PAY_STATUS_SUCCESS = 1;
     /**
+     * 已经支付成功状态
+     */
+    Integer PAY_STATUS_DELETE = 5;
+    /**
      * 返回银联通知成功
      */
     String YINLIAN_RESULT_SUCCESS = "ok";

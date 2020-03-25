@@ -24,7 +24,12 @@ public class PaymentTransacDTO {
 	/**
 	 * 第三方支付id 支付宝、银联等
 	 */
-	private String partyPayId;
+	private String paymentChannel;
+
+	/**
+	 * 退款凭证
+	 */
+	private String tradeNo;
 
 	/**
 	 * 使用雪花算法生产 支付系统 支付id

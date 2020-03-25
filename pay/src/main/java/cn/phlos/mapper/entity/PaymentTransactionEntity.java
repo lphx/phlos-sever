@@ -41,6 +41,10 @@ public class PaymentTransactionEntity {
 	private String paymentId;
 
 	/**
+	 * 退款请求号：退款时专用字段
+	 */
+	private String tradeNo;
+	/**
 	 * 支付渠道
 	 */
 	private String paymentChannel;

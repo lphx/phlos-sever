@@ -45,12 +45,20 @@ public abstract class AbstractPayCallbackTemplate {
     @Transactional
     public abstract String asyncService(Map<String, String> verifySignature);
 
+    @Transactional
+    public abstract String asyncCallbackService(Map<String, String> verifySignature);
+
     public abstract String failResult();
 
     public abstract String successResult();
 
-
+//    private String payParameter;
+//    public void getPayParameter(String templateName){
+//        this.payParameter =  PayRequest.getEnum(templateName);
+//    }
     /**
+     * 支付回调接口
+     *
      * *1. 将报文数据存放到es <br>
      * 1. 验证报文参数<br>
      * 2. 将日志根据支付id存放到数据库中<br>
@@ -80,6 +88,35 @@ public abstract class AbstractPayCallbackTemplate {
         return asyncService(verifySignatureMap);
     }
 
+
+
+    /**
+     * 退款回调接口
+     *
+     * *1. 将报文数据存放到es <br>
+     * 1. 验证报文参数<br>
+     * 2. 将日志根据支付id存放到数据库中<br>
+     * 3. 执行的异步回调业务逻辑<br>
+     *
+     */
+    @Transactional
+    public String refundCallBack(HttpServletRequest req, HttpServletResponse resp) {
+        // 1. 验证报文参数 相同点 获取所有的请求参数封装成为map集合 并且进行参数验证
+        Map<String, String> verifySignatureMap = verifySignature(req, resp);
+        // 2.将日志根据支付id存放到数据库中
+        String paymentId = verifySignatureMap.get("paymentId");
+        if (StringUtils.isEmpty(paymentId)) {
+            return failResult();
+        }
+
+        // 3.采用异步形式写入日志到数据库中
+        log.info(">>>>>>>>开始记录交易日志信息");
+        threadPoolTaskExecutor.execute(new PayLogThread(paymentId,verifySignatureMap));
+
+        // 5.执行的异步回调业务逻辑
+        return asyncCallbackService(verifySignatureMap);
+
+    }
 
     private void payLog(String paymentId,Map<String, String> verifySignature){
         PaymentTransactionLogEntity paymentTransactionLogEntity = new PaymentTransactionLogEntity();

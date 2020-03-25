@@ -76,9 +76,9 @@ public class UnionPayBase {
 			String key = en.getKey(); 
 			String value =  en.getValue();
 			if("respCode".equals(key)){
-				sf.append("<b>"+key + SDKConstants.EQUAL + value+"</br></b>");
+				sf.append("<b>"+key + SDKConstants.TOWCOLON + value+"</br></b>");
 			}else
-				sf.append(key + SDKConstants.EQUAL + value+"</br>");
+				sf.append(key + SDKConstants.TOWCOLON + value+"</br>");
 		}
 		return sf.toString();
     }
