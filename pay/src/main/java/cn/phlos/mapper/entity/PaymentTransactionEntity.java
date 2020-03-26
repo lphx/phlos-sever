@@ -43,10 +43,7 @@ public class PaymentTransactionEntity {
 	 * 使用雪花算法生产 支付系统 支付id
 	 */
 	private String paymentId;
-	/**
-	 * 退货的id
-	 */
-	private String refundId;
+
 	/**
 	 * 退款请求号：退款时专用字段
 	 */
@@ -58,5 +55,6 @@ public class PaymentTransactionEntity {
 
 	// 对账主动查询第三方支付系统区别：银联支付使用paymentId去调用银联支付接口查询 支付宝在异步异步回调接口时，返回partyPayId
 	// 使用第三方支付partyPayIdid查询
+
 
 }

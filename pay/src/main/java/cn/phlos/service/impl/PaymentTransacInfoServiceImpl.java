@@ -75,14 +75,15 @@ public class PaymentTransacInfoServiceImpl extends BaseApiService<PaymentTransac
         paymentEntity.setOrderId(paymentTransactionEntity.getOrderId());
         paymentEntity.setPayAmount(paymentTransactionEntity.getPayAmount());
         paymentEntity.setUserId(paymentTransactionEntity.getUserId());
-        paymentEntity.setPaymentId(paymentTransactionEntity.getPaymentId());
-        paymentEntity.setRefundId(SnowflakeIdUtils.nextId());
+        paymentEntity.setPaymentId(SnowflakeIdUtils.nextId());
         paymentEntity.setPaymentChannel(paymentTransactionEntity.getPaymentChannel());
         paymentEntity.setPaymentStatus(6);
         paymentEntity.setTradeNo(paymentTransactionEntity.getTradeNo());
         paymentEntity.setCreatedTime(new Date());
         paymentTransactionMapper.savePaymentTransaction(paymentEntity);
-
-        return setResultSuccess(ConvertBeanUtils.doToDto(paymentEntity, PaymentTransacDTO.class));
+        PaymentTransacDTO paymentTransacDTO = ConvertBeanUtils.doToDto(paymentEntity, PaymentTransacDTO.class);
+        //为了支付宝的订单号
+        paymentTransacDTO.setRefundId(paymentTransactionEntity.getPaymentId());
+        return setResultSuccess(paymentTransacDTO);
     }
 }

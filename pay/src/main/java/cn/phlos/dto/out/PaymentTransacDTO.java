@@ -14,7 +14,7 @@ public class PaymentTransacDTO {
 	/** 支付状态;0待支付1支付完成 2支付超时3支付失败 */
 	private Integer paymentStatus;
 	/** 用户ID */
-	private Integer userId;
+	private Long userId;
 	/** 订单号码 */
 	private String orderId;
 
@@ -37,7 +37,8 @@ public class PaymentTransacDTO {
 	private String paymentId;
 
 	/**
-	 * 退款的id
+	 * 支付宝退款的id
 	 */
 	private String refundId;
+
 }

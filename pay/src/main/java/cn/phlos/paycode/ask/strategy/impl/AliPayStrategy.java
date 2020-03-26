@@ -1,11 +1,15 @@
 package cn.phlos.paycode.ask.strategy.impl;
 
+import cn.phlos.constant.PayChannelConstant;
 import cn.phlos.dto.out.PaymentTransacDTO;
+import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentChannelEntity;
+import cn.phlos.mapper.entity.PaymentTransactionEntity;
 import cn.phlos.paycode.ask.strategy.PayStrategy;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
 import cn.phlos.util.http.HttpClientUtils;
+import cn.phlos.util.twitter.SnowflakeIdUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
@@ -14,8 +18,10 @@ import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.config.AlipayConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -26,10 +32,14 @@ import java.util.Map;
  */
 @Slf4j
 public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStrategy {
+    @Autowired
+    private PaymentTransactionMapper paymentTransactionMapper;
 
     @Override
-    public String toPayHtml(PaymentChannelEntity pymentChannel, PaymentTransacDTO payMentTransacDTO) {
+    public String toPayHtml(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO) {
         log.info(">>>>>支付宝参数封装开始<<<<<<<<");
+
+
 
         // 获得初始化的AlipayClient
         AlipayClient alipayClient = new DefaultAlipayClient(pymentChannel.getGatewayUrl(), pymentChannel.getMerchantId(),
@@ -44,9 +54,9 @@ public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStr
         alipayRequest.setNotifyUrl(pymentChannel.getSyncUrl());
 
         // 商户订单号，商户网站订单系统中唯一订单号，必填
-        String outTradeNo = payMentTransacDTO.getPaymentId();
+        String outTradeNo = paymentTransacDTO.getPaymentId();
         // 付款金额，必填
-        String totalAmount = changeF2Y(payMentTransacDTO.getPayAmount() + "");
+        String totalAmount = changeF2Y(paymentTransacDTO.getPayAmount() + "");
         // 订单名称，必填
         String subject = "测试项目";
         // 商品描述，可空
@@ -68,6 +78,8 @@ public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStr
 
     @Override
     public BaseResponse<JSONObject> refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO) {
+
+
         //获得初始化的AlipayClient
         AlipayClient alipayClient = new DefaultAlipayClient(pymentChannel.getGatewayUrl(), pymentChannel.getMerchantId(),
                 pymentChannel.getPrivateKey(), "json", AlipayConfig.charset, pymentChannel.getPublicKey(),
@@ -76,7 +88,7 @@ public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStr
         AlipayTradeRefundRequest alipayRequest = new AlipayTradeRefundRequest();
 
         //商户订单号，商户网站订单系统中唯一订单号
-        String out_trade_no =  paymentTransacDTO.getPaymentId();
+        String out_trade_no =  paymentTransacDTO.getRefundId();
         //支付宝交易号
         //String trade_no = new String(request.getParameter("WIDTRtrade_no").getBytes("ISO-8859-1"),"UTF-8");
         //请二选一设置
@@ -98,8 +110,14 @@ public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStr
             String result = alipayClient.execute(alipayRequest).getBody();
 //            Map<String, String> params = alipayClient.execute(alipayRequest).getParams();
             //String post = HttpClientUtils.doPost(pymentChannel.getSyncUrl(),result);
-            Map<String, Map<String,String>> data = (Map<String, Map<String,String>>)JSONObject.parse(result);
+            Map<String,  Map<String, String>> data = (Map<String,  Map<String, String>>)JSONObject.parse(result);
             System.out.println("data.get(\"alipay_trade_refund_response\") = " + data.get("alipay_trade_refund_response"));
+            //Map<String, String> refund_response = data.get("alipay_trade_refund_response");
+            Map<String, String> sign = data.get("sign");
+            Map<String, String> refundResponse = data.get("alipay_trade_refund_response");
+//            refundResponse.put("paymentId",paymentId);
+//            refundResponse.put("sign",);
+
 //            for (Iterator<String> iter = data.keySet().iterator(); iter.hasNext();) {
 //                String name =  iter.next();
 //                Map<String, String> stringStringMap = data.get(name);
