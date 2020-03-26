@@ -9,6 +9,7 @@ import cn.phlos.service.PayContextService;
 import cn.phlos.service.PaymentTransacInfoService;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
+import cn.phlos.util.token.GenerateToken;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class PayContextServiceImpl extends BaseApiService<JSONObject> implements
     
     @Autowired
     private PaymentTransacInfoService payMentTransacInfoService;
+
+    @Autowired
+    private GenerateToken generateToken;
 
     @Override
     public BaseResponse<JSONObject> toPayHtml(String channelId, String payToken) {
@@ -37,6 +41,8 @@ public class PayContextServiceImpl extends BaseApiService<JSONObject> implements
         if (!isSuccess(paymentTransacDTOBaseResponse)){
             setResultError(paymentTransacDTOBaseResponse.getMsg());
         }
+        //删除token
+        generateToken.removeToken(payToken);
         PaymentTransacDTO paymentTransacDTO = paymentTransacDTOBaseResponse.getData();
 
         // 3.执行具体的支付渠道的算法获取html表单数据 策略设计模式 使用java反射机制 执行具体方法

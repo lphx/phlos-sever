@@ -36,4 +36,8 @@ public class PaymentTransacDTO {
 	 */
 	private String paymentId;
 
+	/**
+	 * 退款的id
+	 */
+	private String refundId;
 }

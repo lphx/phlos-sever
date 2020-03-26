@@ -1,5 +1,6 @@
 package cn.phlos.paycode.callback.template.impl;
 
+import cn.phlos.constant.PayChannelConstant;
 import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
 import cn.phlos.constant.PayConstant;
 import cn.phlos.mapper.PaymentTransactionMapper;
@@ -9,6 +10,7 @@ import cn.unionpay.acp.sdk.LogUtil;
 import cn.unionpay.acp.sdk.SDKConstants;
 import cn.unionpay.acp.sdk.UnionPayBase;
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,7 @@ import java.util.Map;
  * @description: 银联支付回调模版实现
  */
 @Component
+@Slf4j
 public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 
 	@Autowired
@@ -43,7 +46,7 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 	@Override
 	public Map<String, String> verifySignature(HttpServletRequest req, HttpServletResponse resp) {
 
-		LogUtil.writeLog("BackRcvResponse接收后台通知开始");
+		log.info("BackRcvResponse接收后台通知开始");
 
 		String encoding = req.getParameter(SDKConstants.param_encoding);
 		// 获取银联通知服务器发送的后台通知参数
@@ -52,16 +55,16 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 
 		// 重要！验证签名前不要修改reqParam中的键值对的内容，否则会验签不过
 		if (!AcpService.validate(reqParam, encoding)) {
-			LogUtil.writeLog("验证签名结果[失败].");
+			log.info("验证签名结果[失败].");
 			reqParam.put(PayConstant.RESULT_NAME, PayConstant.RESULT_PAYCODE_201);
 		} else {
-			LogUtil.writeLog("验证签名结果[成功].");
+			log.info("验证签名结果[成功].");
 			// 【注：为了安全验签成功才应该写商户的成功处理逻辑】交易成功，更新商户订单状态
 			String orderId = reqParam.get("orderId"); // 获取后台通知的数据，其他字段也可用类似方式获取
 			reqParam.put("paymentId", orderId);
 			reqParam.put(PayConstant.RESULT_NAME, PayConstant.RESULT_PAYCODE_200);
 		}
-		LogUtil.writeLog("BackRcvResponse接收后台通知结束");
+		log.info("BackRcvResponse接收后台通知结束");
 		return reqParam;
 	}
 
@@ -83,71 +86,21 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 			return failResult();
 		}
 		// 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的
-		PaymentTransactionEntity paymentTransaction = paymentTransactionMapper.selectByPaymentId(orderId);
-		if (paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_SUCCESS)||paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_DELETE)) {
-			// 网络重试中，之前已经支付过
-			return successResult();
-		}
-		// 2.将状态改为已经支付或者退款成功
-		Integer paymentStatus = PayConstant.PAY_STATUS_SUCCESS;
-		//如果是包含退款，就更新状态为5表示退款的订单
-		if(!StringUtils.isEmpty(payStatus) && payStatus.equals("refund")){
-			paymentStatus = PayConstant.PAY_STATUS_DELETE;
-		}
-		paymentTransactionMapper.updatePaymentStatus( paymentStatus+ "", orderId, "yinlian_pay",queryId);
-		// 3.调用积分服务接口增加积分(处理幂等性问题) MQ
-		//addMQIntegral(paymentTransaction); // 使用MQ
-		//int i = 1 / 0; // 支付状态还是为待支付状态但是 积分缺增加
-		return successResult();
-	}
-
-	/*@Override
-	@Transactional
-	public String asyncCallbackService(Map<String, String> verifySignature) {
-		String orderId = verifySignature.get("orderId"); // 获取后台通知的数据，其他字段也可用类似方式获取
-		String respCode = verifySignature.get("respCode");
-		String queryId = verifySignature.get("queryId");
-		// 判断respCode=00、A6后，对涉及资金类的交易，请再发起查询接口查询，确定交易成功后更新数据库。
-		System.out.println("orderId:" + orderId + ",respCode:" + respCode);
-		// 1.判断respCode是否为已经支付成功断respCode=00、A6后，
-		if (!(respCode.equals("00") || respCode.equals("A6"))) {
+		boolean result = examinePaymentTransaction(orderId, payStatus, queryId, PayChannelConstant.YINLIAN_PAY);
+		if (!result){
 			return failResult();
 		}
-		// 根据日志 手动补偿 使用退款id调用第三方支付接口查询
-		PaymentTransactionEntity paymentTransaction = paymentTransactionMapper.selectByPaymentId(orderId);
-		if (paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_DELETE)) {
-			// 网络重试中，之前已经退款过
-			return successResult();
-		}
-		// 2.将状态改为已经退款成功
-		paymentTransactionMapper.updatePaymentStatus(PayConstant.PAY_STATUS_DELETE + "", orderId, "yinlian_pay",queryId);
 		// 3.调用积分服务接口增加积分(处理幂等性问题) MQ
 		//addMQIntegral(paymentTransaction); // 使用MQ
 		//int i = 1 / 0; // 支付状态还是为待支付状态但是 积分缺增加
 		return successResult();
-	}*/
-
-	/**
-	 * 基于MQ增加积分
-	 */
-	@Async
-	private void addMQIntegral(PaymentTransactionEntity paymentTransaction) {
-		JSONObject jsonObject = new JSONObject();
-		jsonObject.put("paymentId", paymentTransaction.getPaymentId());
-		jsonObject.put("userId", paymentTransaction.getUserId());
-		jsonObject.put("integral", 100);
-		//integralProducer.send(jsonObject);
 	}
 
-	@Override
-	public String failResult() {
-		return PayConstant.YINLIAN_RESULT_FAIL;
-	}
 
-	@Override
-	public String successResult() {
-		return PayConstant.YINLIAN_RESULT_SUCCESS;
-	}
+
+
+
+
 
 	/**
 	 * 获取请求参数中所有的信息 当商户上送frontUrl或backUrl地址中带有参数信息的时候，
@@ -189,7 +142,7 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 		Map<String, String> res = new HashMap<String, String>();
 		try {
 			String notifyStr = new String(IOUtils.toByteArray(request.getInputStream()), UnionPayBase.encoding);
-			LogUtil.writeLog("收到通知报文：" + notifyStr);
+			log.info("收到通知报文：" + notifyStr);
 			String[] kvs = notifyStr.split("&");
 			for (String kv : kvs) {
 				String[] tmp = kv.split("=");
@@ -200,10 +153,10 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 				}
 			}
 		} catch (UnsupportedEncodingException e) {
-			LogUtil.writeLog("getAllRequestParamStream.UnsupportedEncodingException error: " + e.getClass() + ":"
+			log.info("getAllRequestParamStream.UnsupportedEncodingException error: " + e.getClass() + ":"
 					+ e.getMessage());
 		} catch (IOException e) {
-			LogUtil.writeLog("getAllRequestParamStream.IOException error: " + e.getClass() + ":" + e.getMessage());
+			log.info("getAllRequestParamStream.IOException error: " + e.getClass() + ":" + e.getMessage());
 		}
 		return res;
 	}

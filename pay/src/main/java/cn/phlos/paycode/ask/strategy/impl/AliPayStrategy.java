@@ -3,15 +3,21 @@ package cn.phlos.paycode.ask.strategy.impl;
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.mapper.entity.PaymentChannelEntity;
 import cn.phlos.paycode.ask.strategy.PayStrategy;
+import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
+import cn.phlos.util.http.HttpClientUtils;
 import com.alibaba.fastjson.JSONObject;
+import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.config.AlipayConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  *
@@ -19,21 +25,23 @@ import java.math.BigDecimal;
  * @description: 支付宝支付渠道
  */
 @Slf4j
-public class AliPayStrategy implements PayStrategy {
+public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStrategy {
 
     @Override
     public String toPayHtml(PaymentChannelEntity pymentChannel, PaymentTransacDTO payMentTransacDTO) {
         log.info(">>>>>支付宝参数封装开始<<<<<<<<");
 
         // 获得初始化的AlipayClient
-        AlipayClient alipayClient = new DefaultAlipayClient(AlipayConfig.gatewayUrl, AlipayConfig.app_id,
-                AlipayConfig.merchant_private_key, "json", AlipayConfig.charset, AlipayConfig.alipay_public_key,
+        AlipayClient alipayClient = new DefaultAlipayClient(pymentChannel.getGatewayUrl(), pymentChannel.getMerchantId(),
+                pymentChannel.getPrivateKey(), "json", AlipayConfig.charset, pymentChannel.getPublicKey(),
                 AlipayConfig.sign_type);
 
         // 设置请求参数
         AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
-        alipayRequest.setReturnUrl(AlipayConfig.return_url);
-        alipayRequest.setNotifyUrl(AlipayConfig.notify_url);
+        //设置异步回调
+        alipayRequest.setReturnUrl(pymentChannel.getAsynUrl());
+        //设置同步回调--按照文档为官方服务器进行操作，所以有无都可
+        alipayRequest.setNotifyUrl(pymentChannel.getSyncUrl());
 
         // 商户订单号，商户网站订单系统中唯一订单号，必填
         String outTradeNo = payMentTransacDTO.getPaymentId();
@@ -47,7 +55,7 @@ public class AliPayStrategy implements PayStrategy {
         alipayRequest.setBizContent("{\"out_trade_no\":\"" + outTradeNo + "\"," + "\"total_amount\":\"" + totalAmount
                 + "\"," + "\"subject\":\"" + subject + "\"," + "\"body\":\"" + body + "\","
                 + "\"product_code\":\"FAST_INSTANT_TRADE_PAY\"}");
-
+        log.info(">>>>>支付宝参数:{},"+alipayRequest);
         // 请求
         try {
             String result = alipayClient.pageExecute(alipayRequest).getBody();
@@ -60,6 +68,63 @@ public class AliPayStrategy implements PayStrategy {
 
     @Override
     public BaseResponse<JSONObject> refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO) {
+        //获得初始化的AlipayClient
+        AlipayClient alipayClient = new DefaultAlipayClient(pymentChannel.getGatewayUrl(), pymentChannel.getMerchantId(),
+                pymentChannel.getPrivateKey(), "json", AlipayConfig.charset, pymentChannel.getPublicKey(),
+                AlipayConfig.sign_type);
+        //设置请求参数
+        AlipayTradeRefundRequest alipayRequest = new AlipayTradeRefundRequest();
+
+        //商户订单号，商户网站订单系统中唯一订单号
+        String out_trade_no =  paymentTransacDTO.getPaymentId();
+        //支付宝交易号
+        //String trade_no = new String(request.getParameter("WIDTRtrade_no").getBytes("ISO-8859-1"),"UTF-8");
+        //请二选一设置
+        //需要退款的金额，该金额不能大于订单金额，必填
+        String refund_amount = changeF2Y(paymentTransacDTO.getPayAmount() + "");
+        //退款的原因说明
+        String refund_reason = "测试说明";
+        //标识一次退款请求，同一笔交易多次退款需要保证唯一，如需部分退款，则此参数必传
+        String out_request_no = paymentTransacDTO.getTradeNo();
+
+        alipayRequest.setBizContent("{\"out_trade_no\":\""+ out_trade_no +"\","
+                //+ "\"trade_no\":\""+ trade_no +"\","
+                + "\"refund_amount\":\""+ refund_amount +"\","
+                + "\"refund_reason\":\""+ refund_reason +"\","
+                + "\"out_request_no\":\""+ out_request_no +"\"}");
+
+        //请求
+        try {
+            String result = alipayClient.execute(alipayRequest).getBody();
+//            Map<String, String> params = alipayClient.execute(alipayRequest).getParams();
+            //String post = HttpClientUtils.doPost(pymentChannel.getSyncUrl(),result);
+            Map<String, Map<String,String>> data = (Map<String, Map<String,String>>)JSONObject.parse(result);
+            System.out.println("data.get(\"alipay_trade_refund_response\") = " + data.get("alipay_trade_refund_response"));
+//            for (Iterator<String> iter = data.keySet().iterator(); iter.hasNext();) {
+//                String name =  iter.next();
+//                Map<String, String> stringStringMap = data.get(name);
+//                for (Iterator<String> iter1 = stringStringMap.keySet().iterator(); iter1.hasNext();) {
+//                    String name1 = iter1.next();
+//                    String s = stringStringMap.get(name1);
+//                    System.out.println("anme="+name1+"====valueStr=="+s );
+//                }
+//
+//            }
+
+//            String alipay_trade_refund_response = data.get("alipay_trade_refund_response");
+//            Map<String, String> refund_response = (Map<String, String>)JSONObject.parse(alipay_trade_refund_response);
+//            refund_response.put("msg",data.get("msg"));
+//            log.info(refund_response.toString());
+            return  setResultSuccess(result);
+        }  catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //输出
+       // out.println(result);
+
+
+
         return null;
     }
 

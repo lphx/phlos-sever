@@ -96,7 +96,7 @@ public class PayController extends BaseApiService<JSONObject> {
 	/**
 	 * 500页面
 	 */
-	protected static final String ERROR_500_FTL = "500.ftl";
+	protected static final String ERROR_500_FTL = "500";
 
 	// 接口直接返回true 或者false
 	public Boolean isSuccess(BaseResponse<?> baseResp) {

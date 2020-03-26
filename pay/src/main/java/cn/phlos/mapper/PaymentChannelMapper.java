@@ -13,7 +13,7 @@ public interface PaymentChannelMapper {
      * 查找所有通道开启（状态为0）的支付渠道
      * @return
      */
-    @Select("SELECT channel_Name  AS channelName , channel_Id AS channelId, merchant_Id AS merchantId,sync_Url AS syncUrl, asyn_Url AS asynUrl,public_Key AS publicKey, private_Key AS privateKey,channel_State AS channelState ,class_ADDRES as classAddres ,retry_beanid as retryBeanId     FROM payment_channel WHERE CHANNEL_STATE='0';")
+    @Select("SELECT channel_Name  AS channelName , channel_Id AS channelId, merchant_Id AS merchantId,sync_Url AS syncUrl, asyn_Url AS asynUrl,public_Key AS publicKey, private_Key AS privateKey,channel_State AS channelState ,class_ADDRES as classAddres ,retry_beanid as retryBeanId ,gateway_url as gatewayUrl FROM payment_channel WHERE CHANNEL_STATE='0';")
     public List<PaymentChannelEntity> selectAll();
 
     /**
@@ -21,7 +21,7 @@ public interface PaymentChannelMapper {
      * @param channelId
      * @return
      */
-    @Select("SELECT channel_Name  AS channelName , channel_Id AS channelId, merchant_Id AS merchantId,sync_Url AS syncUrl, asyn_Url AS asynUrl,public_Key AS publicKey, private_Key AS privateKey,channel_State AS channelState ,class_ADDRES as classAddres   ,retry_beanid as retryBeanId    FROM payment_channel WHERE CHANNEL_STATE='0'  AND channel_Id=#{channelId} ;")
+    @Select("SELECT channel_Name  AS channelName , channel_Id AS channelId, merchant_Id AS merchantId,sync_Url AS syncUrl, asyn_Url AS asynUrl,public_Key AS publicKey, private_Key AS privateKey,channel_State AS channelState ,class_ADDRES as classAddres   ,retry_beanid as retryBeanId ,gateway_url as gatewayUrl FROM payment_channel WHERE CHANNEL_STATE='0'  AND channel_Id=#{channelId} ;")
     PaymentChannelEntity selectBychannelId(String channelId);
 
 

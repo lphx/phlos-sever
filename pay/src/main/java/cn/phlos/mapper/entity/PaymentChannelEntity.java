@@ -14,6 +14,8 @@ public class PaymentChannelEntity {
     private String channelId;
     /** 商户id */
     private String merchantId;
+    /**支付网关**/
+    private String gatewayUrl;
     /** 同步回调URL */
     private String syncUrl;
     /** 异步回调URL */

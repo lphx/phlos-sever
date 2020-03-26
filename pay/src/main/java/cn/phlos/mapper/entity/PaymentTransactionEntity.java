@@ -1,12 +1,16 @@
 package cn.phlos.mapper.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
 
 
 
-import lombok.Data;
-
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PaymentTransactionEntity {
 	/** 主键ID */
 	//@Id
@@ -39,7 +43,10 @@ public class PaymentTransactionEntity {
 	 * 使用雪花算法生产 支付系统 支付id
 	 */
 	private String paymentId;
-
+	/**
+	 * 退货的id
+	 */
+	private String refundId;
 	/**
 	 * 退款请求号：退款时专用字段
 	 */
