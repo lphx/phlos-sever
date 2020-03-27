@@ -81,21 +81,21 @@ public abstract class AbstractPayCallbackTemplate {
     public String asyncCallBack(HttpServletRequest req, HttpServletResponse resp) throws AlipayApiException {
         // 1. 验证报文参数 相同点 获取所有的请求参数封装成为map集合 并且进行参数验证
         Map<String, String> verifySignatureMap = verifySignature(req, resp);
-        // 2.将日志根据支付id存放到数据库中
+        // 2.201报文验证签名失败
+        String result = verifySignatureMap.get(PayConstant.RESULT_NAME);
+        if (result.equals(PayConstant.RESULT_PAYCODE_201)) {
+            return failResult();
+        }
+        // 3.将日志根据支付id存放到数据库中
         String paymentId = verifySignatureMap.get("paymentId");
         if (StringUtils.isEmpty(paymentId)) {
             return failResult();
         }
 
-        // 3.采用异步形式写入日志到数据库中
+        // 4.采用异步形式写入日志到数据库中
         log.info(">>>>>>>>开始记录交易日志信息");
         threadPoolTaskExecutor.execute(new PayLogThread(paymentId,verifySignatureMap));
-        // 4.201报文验证签名失败
-        String result = verifySignatureMap.get(PayConstant.RESULT_NAME);
-        // 4.201报文验证签名失败
-        if (result.equals(PayConstant.RESULT_PAYCODE_201)) {
-            return failResult();
-        }
+
         // 5.执行的异步回调业务逻辑
         return asyncService(verifySignatureMap);
     }

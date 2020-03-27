@@ -12,9 +12,11 @@ public interface PaymentTransactionMapper {
 	/**
 	 * 保存支付的信息
 	 */
+	@Options(useGeneratedKeys = true, keyProperty = "id")
 	@Insert("INSERT INTO `payment_transaction` VALUES (null, #{payAmount}, '0', #{userId}, #{orderId}, null, null, now(), null, null,null,#{paymentId},null,null);")
 	public int insertPaymentTransaction(PaymentTransactionEntity paymentTransactionEntity);
 
+	@Options(useGeneratedKeys = true, keyProperty = "id")
 	@Insert("INSERT INTO `payment_transaction` VALUES (#{id}, #{payAmount}, #{paymentStatus}, #{userId}, #{orderId}, #{revision}, #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime},#{partyPayId},#{paymentId},#{paymentChannel},#{tradeNo});")
 	public int savePaymentTransaction(PaymentTransactionEntity paymentTransactionEntity);
 

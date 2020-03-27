@@ -177,7 +177,7 @@ public class UnionPayStrategy extends BaseApiService<JSONObject> implements PayS
         String post = HttpClientUtils.doPost(pymentChannel.getSyncUrl(),rspData);
        // threadPoolTaskExecutor.execute(new UnionPayStrategy.SynCallbackThread(pymentChannel.getSyncUrl(),rspData));
 //        String reqMessage = UnionPayBase.genHtmlResult(reqData);
-       String rspMessage = UnionPayBase.genHtmlResult(rspData);
+       //String rspMessage = UnionPayBase.genHtmlResult(rspData);
         //resp.getWriter().write("</br>请求报文:<br/>"+reqMessage+"<br/>" + "应答报文:</br>"+rspMessage+"");
         return setResultSuccess(PayConstant.YINLIAN_RESULT_SUCCESS);
     }

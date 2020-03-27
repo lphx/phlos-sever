@@ -52,13 +52,13 @@ public class AliPayCallbackTemplate extends AbstractPayCallbackTemplate {
             params.put(name, valueStr);
         }
         String publicKey = paymentChannelMapper.selectBychannelId(PayChannelConstant.ALI_PAY).getPublicKey();
-        boolean signVerified = AlipaySignature.rsaCheckV1(params, publicKey, AlipayConfig.charset, AlipayConfig.sign_type); //调用SDK验证签名
+        boolean signVerified = AlipaySignature.rsaCheckV1(params,  AlipayConfig.alipay_public_key, AlipayConfig.charset, AlipayConfig.sign_type); //调用SDK验证签名
         //——请在这里编写您的程序（以下代码仅作参考）——
         if(signVerified) {
             log.info(">>>>>>>>>>支付宝接收后台通知:{},SDK验签成功");
             //获取到交易的id和赋值状态
-            String out_trade_no = req.getParameter("out_trade_no");
-            params.put("paymentId", out_trade_no);
+            String paymentId = req.getParameter("paymentId");
+            params.put("paymentId", paymentId);
             params.put(PayConstant.RESULT_NAME, PayConstant.RESULT_PAYCODE_200);
         }else {
             log.info(">>>>>>>>>>支付宝接收后台通知:{},SDK验签失败");
@@ -72,12 +72,12 @@ public class AliPayCallbackTemplate extends AbstractPayCallbackTemplate {
     @Override
     public String asyncService(Map<String, String> verifySignature) {
 
-        String out_trade_no = verifySignature.get("out_trade_no"); // 获取后台通知的数据，其他字段也可用类似方式获取
+        String paymentId = verifySignature.get("paymentId"); // 获取后台通知的数据，其他字段也可用类似方式获取
         String trade_no = verifySignature.get("trade_no");
         String payStatus = verifySignature.get("payStatus");
 
         // 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的
-        boolean result = examinePaymentTransaction(out_trade_no, payStatus, trade_no, PayChannelConstant.ALI_PAY);
+        boolean result = examinePaymentTransaction(paymentId, payStatus, trade_no, PayChannelConstant.ALI_PAY);
         if (!result){
             return failResult();
         }
