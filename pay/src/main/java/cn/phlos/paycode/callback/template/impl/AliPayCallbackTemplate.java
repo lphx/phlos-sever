@@ -6,6 +6,8 @@ import cn.phlos.mapper.PaymentChannelMapper;
 import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;
 import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
+import cn.phlos.util.base.BaseResponse;
+import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.config.AlipayConfig;
@@ -51,13 +53,19 @@ public class AliPayCallbackTemplate extends AbstractPayCallbackTemplate {
             }
             params.put(name, valueStr);
         }
+        //==================同步回调的代码=======================================
+        String trade_status = req.getParameter("trade_status");
+        if (trade_status != null){
+
+        }
+        //==================异步回调的代码=======================================
         String publicKey = paymentChannelMapper.selectBychannelId(PayChannelConstant.ALI_PAY).getPublicKey();
-        boolean signVerified = AlipaySignature.rsaCheckV1(params,  AlipayConfig.alipay_public_key, AlipayConfig.charset, AlipayConfig.sign_type); //调用SDK验证签名
+        boolean signVerified = AlipaySignature.rsaCheckV1(params, publicKey, AlipayConfig.charset, AlipayConfig.sign_type); //调用SDK验证签名
         //——请在这里编写您的程序（以下代码仅作参考）——
         if(signVerified) {
             log.info(">>>>>>>>>>支付宝接收后台通知:{},SDK验签成功");
             //获取到交易的id和赋值状态
-            String paymentId = req.getParameter("paymentId");
+            String paymentId = req.getParameter("out_trade_no");
             params.put("paymentId", paymentId);
             params.put(PayConstant.RESULT_NAME, PayConstant.RESULT_PAYCODE_200);
         }else {
@@ -70,21 +78,20 @@ public class AliPayCallbackTemplate extends AbstractPayCallbackTemplate {
     }
 
     @Override
-    public String asyncService(Map<String, String> verifySignature) {
+    public BaseResponse<JSONObject> asyncService(Map<String, String> verifySignature) {
 
         String paymentId = verifySignature.get("paymentId"); // 获取后台通知的数据，其他字段也可用类似方式获取
         String trade_no = verifySignature.get("trade_no");
-        String payStatus = verifySignature.get("payStatus");
 
-        // 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的
-        boolean result = examinePaymentTransaction(paymentId, payStatus, trade_no, PayChannelConstant.ALI_PAY);
+        // 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的,记录日志
+        boolean result = examinePaymentTransaction(paymentId, PayConstant.PAY_STATUS_SUCCESS, trade_no,verifySignature,PayChannelConstant.ALI_PAY);
         if (!result){
-            return failResult();
+            return setResultError("已经完成交易");
         }
         // 3.调用积分服务接口增加积分(处理幂等性问题) MQ
         //addMQIntegral(paymentTransaction); // 使用MQ
         //int i = 1 / 0; // 支付状态还是为待支付状态但是 积分缺增加
-        return successResult();
+        return setResultSuccess();
 
     }
 

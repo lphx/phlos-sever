@@ -7,6 +7,7 @@ import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentChannelEntity;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;
 import cn.phlos.paycode.ask.strategy.PayStrategy;
+import cn.phlos.paycode.log.AbstractPayment;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
 import cn.phlos.util.http.HttpClientUtils;
@@ -17,9 +18,11 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
+import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.config.AlipayConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -33,10 +36,8 @@ import java.util.Map;
  * @description: 支付宝支付渠道
  */
 @Slf4j
-@Service
-public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStrategy {
-    @Autowired
-    private PaymentTransactionMapper paymentTransactionMapper;
+@Component
+public class AliPayStrategy extends AbstractPayment implements PayStrategy {
 
     @Override
     public String toPayHtml(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO) {
@@ -110,21 +111,18 @@ public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStr
 
         //请求
         try {
-            String result = alipayClient.execute(alipayRequest).getBody();
-//            Map<String, String> params = alipayClient.execute(alipayRequest).getParams();
-            //String post = HttpClientUtils.doPost(pymentChannel.getSyncUrl(),result);
+            AlipayTradeRefundResponse alipayTradeRefundResponse = alipayClient.execute(alipayRequest);
+            if (alipayTradeRefundResponse.isSuccess()){
 
-            JSONObject json = JSONObject.parseObject(result);
-            String sign = (String)json.get("sign");
-            Map<String, String> refundResponse = ( Map<String, String>)json.get("alipay_trade_refund_response");
+            }
+            String result = alipayTradeRefundResponse.getBody();
+            //记录交易信息
+            payLog(out_trade_no,result);
 
-            refundResponse.put("paymentId",paymentTransacDTO.getRefundId());
-            refundResponse.put("sign",sign);
-            refundResponse.put("payStatus","refund");
-            String s = forecMap(refundResponse);
-            String post = HttpClientUtils.doGet(pymentChannel.getSyncUrl()+"?"+s);
+            //更新订单的信息
+            examinePaymentTransaction(out_trade_no,PayConstant.PAY_STATUS_DELETE,null,result,PayChannelConstant.ALI_PAY);
 
-            return  setResultSuccess(PayConstant.YINLIAN_RESULT_SUCCESS);
+
         }  catch (Exception e) {
             e.printStackTrace();
         }
@@ -137,14 +135,6 @@ public class AliPayStrategy extends BaseApiService<JSONObject> implements PayStr
         return null;
     }
 
-    public String forecMap(Map<String, String> refundResponse){
-        StringBuilder stringBuilder = new StringBuilder();
-        for(Map.Entry<String, String> entry : refundResponse.entrySet()){
-            stringBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
-        }
-        String substring = stringBuilder.toString().substring(0, stringBuilder.length() - 1);
-        return substring;
-    }
 
     /** 金额为分的格式 */
     public static final String CURRENCY_FEN_REGEX = "\\-?[0-9]+";

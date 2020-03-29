@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 public class PayCreateTokenServiceImpl extends BaseApiService<JSONObject> implements PayCreateTokenService {
 
     @Autowired
-    private PaymentTransactionMapper PaymentTransactionMapper;
+    private PaymentTransactionMapper paymentTransactionMapper;
 
     @Autowired
     private GenerateToken generateToken;
@@ -47,22 +47,30 @@ public class PayCreateTokenServiceImpl extends BaseApiService<JSONObject> implem
             return setResultError("userId不能为空!");
         }
 
-        //2.把记录存进数据库 待支付记录
-        PaymentTransactionEntity paymentTransactionEntity = new PaymentTransactionEntity();
-        paymentTransactionEntity.setUserId(userId);
-        paymentTransactionEntity.setOrderId(orderId);
-        paymentTransactionEntity.setPayAmount(payAmount);
-        //根据雪花算法生成全局id
-        paymentTransactionEntity.setPaymentId(SnowflakeIdUtils.nextId());
+        //根据orderId去数据库查找是否有新的订单信息
+        PaymentTransactionEntity paymentOrder = paymentTransactionMapper.selectByOrderId(orderId);
+        Long payId;
+        if (paymentOrder != null){
+            payId = paymentOrder.getId();
+        }else {
+            //2.把记录存进数据库 待支付记录
+            PaymentTransactionEntity paymentTransactionEntity = new PaymentTransactionEntity();
+            paymentTransactionEntity.setUserId(userId);
+            paymentTransactionEntity.setOrderId(orderId);
+            paymentTransactionEntity.setPayAmount(payAmount);
+            //根据雪花算法生成全局id
+            paymentTransactionEntity.setPaymentId(SnowflakeIdUtils.nextId());
 
-        int result = PaymentTransactionMapper.insertPaymentTransaction(paymentTransactionEntity);
-        if (!toDaoResult(result)) {
-            return setResultError("系统错误!");
-        }
-        // 获取主键id
-        Long payId = paymentTransactionEntity.getId();
-        if (payId == null) {
-            return setResultError("系统错误!");
+            int result = paymentTransactionMapper.insertPaymentTransaction(paymentTransactionEntity);
+            if (!toDaoResult(result)) {
+                return setResultError("系统错误!");
+            }
+            // 获取主键id
+            payId = paymentTransactionEntity.getId();
+            if (payId == null) {
+                return setResultError("系统错误!");
+            }
+
         }
 
 

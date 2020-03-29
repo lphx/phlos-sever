@@ -20,20 +20,22 @@ public interface PaymentTransactionMapper {
 	@Insert("INSERT INTO `payment_transaction` VALUES (#{id}, #{payAmount}, #{paymentStatus}, #{userId}, #{orderId}, #{revision}, #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime},#{partyPayId},#{paymentId},#{paymentChannel},#{tradeNo});")
 	public int savePaymentTransaction(PaymentTransactionEntity paymentTransactionEntity);
 
-	@Select("SELECT ID AS ID ,pay_Amount AS payAmount,payment_Status AS paymentStatus,user_ID AS userId, order_Id AS orderId , created_Time as createdTime ,partypay_Id as partyPayId , payment_Id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo FROM payment_transaction WHERE ID=#{id};")
+	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo FROM payment_transaction WHERE ID=#{id};")
 	public PaymentTransactionEntity selectById(Long id);
 
-	@Select("SELECT ID AS ID ,pay_Amount AS payAmount,payment_Status AS paymentStatus,user_ID AS userId, order_Id AS orderId , created_Time as createdTime ,partypay_Id as partyPayId , payment_Id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE PAYMENT_ID=#{paymentId};")
+	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE payment_id=#{paymentId};")
 	public PaymentTransactionEntity selectByPaymentId(String paymentId);
 
-	@Update("update payment_transaction SET PAYMENT_STATUS=#{paymentStatus},payment_channel=#{paymentChannel},trade_no=#{tradeNo}   WHERE PAYMENT_ID=#{paymentId}; ")
-	public int updatePaymentStatus(@Param("paymentStatus") String paymentStatus, @Param("paymentId") String paymentId,
-                                   @Param("paymentChannel") String paymentChannel, @Param("tradeNo") String tradeNo);
+	@Update("update payment_transaction SET payment_status=#{paymentStatus},trade_no=#{tradeNo},payment_channel=#{paymentChannel} WHERE payment_id=#{paymentId}; ")
+	public int updatePaymentStatus(@Param("paymentStatus") Integer paymentStatus, @Param("paymentId") String paymentId, @Param("tradeNo") String tradeNo ,@Param("paymentChannel")String paymentChannel);
 
-	@Select("SELECT ID AS ID ,pay_Amount AS payAmount,payment_Status AS paymentStatus,user_ID AS userId, order_Id AS orderId , created_Time as createdTime ,partypay_Id as partyPayId , payment_Id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE PAYMENT_ID=#{paymentId} and paymentStatus=0 ;")
+	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE order_id=#{orderId} AND payment_status=0;")
+	public PaymentTransactionEntity selectByOrderId(String orderId);
+
+	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE payment_id=#{paymentId} and paymentStatus=0 ;")
 	public PaymentTransactionEntity selectByPaymentNoPayment(String paymentId);
 
-	@Select("SELECT ID AS ID ,pay_Amount AS payAmount,payment_Status AS paymentStatus,user_ID AS userId, order_Id AS orderId , created_Time as createdTime ,partypay_Id as partyPayId , payment_Id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE paymentStatus=0 ;")
+	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE paymentStatus=0 ;")
 	public List<PaymentTransactionEntity> selectByStatusStay();
 
 }

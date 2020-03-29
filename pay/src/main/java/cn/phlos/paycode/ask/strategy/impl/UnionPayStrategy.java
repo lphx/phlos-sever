@@ -1,10 +1,12 @@
 package cn.phlos.paycode.ask.strategy.impl;
 
+import cn.phlos.constant.PayChannelConstant;
 import cn.phlos.constant.PayConstant;
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.mapper.entity.PaymentChannelEntity;
 import cn.phlos.paycode.ask.strategy.PayStrategy;
 import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
+import cn.phlos.paycode.log.AbstractPayment;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
 import cn.phlos.util.http.HttpClientUtils;
@@ -26,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class UnionPayStrategy extends BaseApiService<JSONObject> implements PayStrategy {
+public class UnionPayStrategy extends AbstractPayment implements PayStrategy {
 
 
     @Autowired
@@ -52,7 +54,7 @@ public class UnionPayStrategy extends BaseApiService<JSONObject> implements PayS
         String merchantId = paymentChannel.getMerchantId();
         requestData.put("merId", merchantId); // 商户号码，请改成自己申请的正式商户号或者open上注册得来的777测试商户号
         requestData.put("accessType", "0"); // 接入类型，0：直连商户
-        String paymentId = paymentTransacDTO.getRefundId();
+        String paymentId = paymentTransacDTO.getPaymentId();
         // 在微服务电商项目中 订单系统(orderId)   支付系统 支付id
         requestData.put("orderId", paymentId); // 商户订单号，8-40位数字字母，不能含“-”或“_”，可以自行定制规则
         requestData.put("txnTime", format(paymentTransacDTO.getCreatedTime())); // 订单发送时间，取系统时间，格式为YYYYMMDDhhmmss，必须取当前时间，否则会报txnTime无效
@@ -126,7 +128,8 @@ public class UnionPayStrategy extends BaseApiService<JSONObject> implements PayS
         /***商户接入参数***/
         data.put("merId", pymentChannel.getMerchantId());                //商户号码，请改成自己申请的商户号或者open上注册得来的777商户号测试
         data.put("accessType", "0");                         //接入类型，商户接入固定填0，不需修改		
-        data.put("orderId", paymentTransacDTO.getPaymentId());          //商户订单号，8-40位数字字母，不能含“-”或“_”，可以自行定制规则，重新产生，不同于原消费
+        String paymentId = paymentTransacDTO.getPaymentId();
+        data.put("orderId", paymentId);          //商户订单号，8-40位数字字母，不能含“-”或“_”，可以自行定制规则，重新产生，不同于原消费
         data.put("txnTime", format(paymentTransacDTO.getCreatedTime()));      //订单发送时间，格式为yyyyMMddHHmmss，必须取当前时间，否则会报txnTime无效
         data.put("currencyCode", "156");                     //交易币种（境内商户一般是156 人民币）		
         data.put("txnAmt", paymentTransacDTO.getPayAmount()+"");                          //****退货金额，单位分，不要带小数点。退货金额小于等于原消费金额，当小于的时候可以多次退货至退货累计金额等于原消费金额
@@ -144,13 +147,46 @@ public class UnionPayStrategy extends BaseApiService<JSONObject> implements PayS
 
         /**对应答码的处理，请根据您的业务逻辑来编写程序,以下应答码处理逻辑仅供参考------------->**/
         //应答码规范参考open.unionpay.com帮助中心 下载  产品接口规范  《平台接入接口规范-第5部分-附录》
-        if(!rspData.isEmpty()){
+        if(rspData.isEmpty()){
+            LogUtil.writeErrorLog("未获取到返回报文或返回http状态码非200");
+            return null;
+        }
+        if(!AcpService.validate(rspData, UnionPayBase.encoding)){
+            LogUtil.writeErrorLog("验证签名失败");
+            return null;
+        }
+
+        LogUtil.writeLog("验证签名成功");
+        String respCode = rspData.get("respCode");
+        if(!("00".equals(respCode) || "03".equals(respCode)|| "04".equals(respCode)|| "05".equals(respCode))){
+            //其他应答码为失败请排查原因
+            //TODO
+            // return setResultError("应答码为失败请排查原因");
+        }
+        payLog(paymentId,rspData);
+        if("00".equals(respCode)){
+            //交易已受理，等待接收后台通知更新订单状态,也可以主动发起 查询交易确定交易状态。
+            //TODO
+            //记录交易信息
+
+            //更新订单的信息
+            examinePaymentTransaction(paymentId,PayConstant.PAY_STATUS_DELETE,null,reqData, PayChannelConstant.YINLIAN_PAY);
+
+        }
+
+        if("03".equals(respCode)|| "04".equals(respCode)|| "05".equals(respCode)){
+            //后续需发起交易状态查询交易确定交易状态
+            //TODO
+        }
+        /*if(!rspData.isEmpty()){
             if(AcpService.validate(rspData, UnionPayBase.encoding)){
                 LogUtil.writeLog("验证签名成功");
-                String respCode = rspData.get("respCode");
+                //String respCode = rspData.get("respCode");
                 if("00".equals(respCode)){
                     //交易已受理，等待接收后台通知更新订单状态,也可以主动发起 查询交易确定交易状态。
                     //TODO
+
+
                 }else if("03".equals(respCode)||
                         "04".equals(respCode)||
                         "05".equals(respCode)){
@@ -164,22 +200,23 @@ public class UnionPayStrategy extends BaseApiService<JSONObject> implements PayS
             }else{
                 LogUtil.writeErrorLog("验证签名失败");
                 //TODO 检查验证签名失败的原因
-                return setResultError("验证签名失败");
+                //return setResultError("验证签名失败");
             }
         }else{
             //未返回正确的http状态
             LogUtil.writeErrorLog("未获取到返回报文或返回http状态码非200");
-            return setResultError("验证签名失败");
-        }
-        //新增退款的字段
+            //return setResultError("验证签名失败");
+        }*/
+       /* //新增退款的字段
         rspData.put("payStatus","refund");
         //调用接口更新交易信息--异步
-        String post = HttpClientUtils.doPost(pymentChannel.getSyncUrl(),rspData);
+        String post = HttpClientUtils.doPost(pymentChannel.getSyncUrl(),rspData);*/
        // threadPoolTaskExecutor.execute(new UnionPayStrategy.SynCallbackThread(pymentChannel.getSyncUrl(),rspData));
 //        String reqMessage = UnionPayBase.genHtmlResult(reqData);
        //String rspMessage = UnionPayBase.genHtmlResult(rspData);
         //resp.getWriter().write("</br>请求报文:<br/>"+reqMessage+"<br/>" + "应答报文:</br>"+rspMessage+"");
-        return setResultSuccess(PayConstant.YINLIAN_RESULT_SUCCESS);
+//        return setResultSuccess(PayConstant.YINLIAN_RESULT_SUCCESS);
+        return null;
     }
 
     private String format(Date timeDate) {

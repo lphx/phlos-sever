@@ -86,4 +86,29 @@ public class PaymentTransacInfoServiceImpl extends BaseApiService<PaymentTransac
         paymentTransacDTO.setRefundId(paymentTransactionEntity.getPaymentId());
         return setResultSuccess(paymentTransacDTO);
     }
+
+    @Override
+    public int insertPaymentTransaction(PaymentTransactionEntity paymentTransactionEntity) {
+        return paymentTransactionMapper.insertPaymentTransaction(paymentTransactionEntity);
+    }
+
+    @Override
+    public int savePaymentTransaction(PaymentTransactionEntity paymentTransactionEntity) {
+        return paymentTransactionMapper.savePaymentTransaction(paymentTransactionEntity);
+    }
+
+    @Override
+    public PaymentTransactionEntity selectById(Long id) {
+        return paymentTransactionMapper.selectById(id);
+    }
+
+    @Override
+    public PaymentTransactionEntity selectByPaymentId(String paymentId) {
+        return paymentTransactionMapper.selectByPaymentId(paymentId);
+    }
+
+    @Override
+    public int updatePaymentStatus(Integer paymentStatus, String paymentId, String tradeNo, String paymentChannel) {
+        return paymentTransactionMapper.updatePaymentStatus(paymentStatus,paymentId,tradeNo,paymentChannel);
+    }
 }

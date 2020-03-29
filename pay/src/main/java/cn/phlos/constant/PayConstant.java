@@ -21,9 +21,9 @@ public interface PayConstant {
     /**
      * 返回交易通知成功
      */
-    String YINLIAN_RESULT_SUCCESS = "ok";
+    String RESULT_SUCCESS = "200";
     /**
      * 返回交易失败通知
      */
-    String YINLIAN_RESULT_FAIL = "fail";
+    String RESULT_FAIL = "500";
 }

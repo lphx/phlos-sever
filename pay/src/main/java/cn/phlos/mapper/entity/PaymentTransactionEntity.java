@@ -9,8 +9,6 @@ import java.util.Date;
 
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class PaymentTransactionEntity {
 	/** 主键ID */
 	//@Id

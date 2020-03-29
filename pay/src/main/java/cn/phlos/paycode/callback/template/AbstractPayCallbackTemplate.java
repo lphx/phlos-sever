@@ -5,6 +5,8 @@ import cn.phlos.mapper.PaymentTransactionLogMapper;
 import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;
 import cn.phlos.mapper.entity.PaymentTransactionLogEntity;
+import cn.phlos.paycode.log.AbstractPayment;
+import cn.phlos.util.base.BaseResponse;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import lombok.AllArgsConstructor;
@@ -26,13 +28,8 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public abstract class AbstractPayCallbackTemplate {
+public abstract class AbstractPayCallbackTemplate extends AbstractPayment {
 
-    @Autowired
-    private PaymentTransactionMapper paymentTransactionMapper;
-
-    @Autowired
-    private PaymentTransactionLogMapper paymentTransactionLogMapper;
 
     @Autowired
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -51,17 +48,12 @@ public abstract class AbstractPayCallbackTemplate {
      * @param verifySignature
      */
     @Transactional
-    public abstract String asyncService(Map<String, String> verifySignature);
+    public abstract BaseResponse<JSONObject> asyncService(Map<String, String> verifySignature);
 
 //    @Transactional
 //    public abstract String asyncCallbackService(Map<String, String> verifySignature);
 
-    public String failResult() {
-        return PayConstant.YINLIAN_RESULT_FAIL;
-    }
-    public String successResult() {
-        return PayConstant.YINLIAN_RESULT_SUCCESS;
-    }
+
 
 
 //    private String payParameter;
@@ -78,23 +70,21 @@ public abstract class AbstractPayCallbackTemplate {
      *
      */
     @Transactional
-    public String asyncCallBack(HttpServletRequest req, HttpServletResponse resp) throws AlipayApiException {
+    public BaseResponse<JSONObject> asyncCallBack(HttpServletRequest req, HttpServletResponse resp) throws AlipayApiException {
         // 1. 验证报文参数 相同点 获取所有的请求参数封装成为map集合 并且进行参数验证
         Map<String, String> verifySignatureMap = verifySignature(req, resp);
         // 2.201报文验证签名失败
         String result = verifySignatureMap.get(PayConstant.RESULT_NAME);
         if (result.equals(PayConstant.RESULT_PAYCODE_201)) {
-            return failResult();
+            return setResultError("报文验证签名失败");
         }
         // 3.将日志根据支付id存放到数据库中
         String paymentId = verifySignatureMap.get("paymentId");
         if (StringUtils.isEmpty(paymentId)) {
-            return failResult();
+            return setResultError("无此交易信息");
         }
 
-        // 4.采用异步形式写入日志到数据库中
-        log.info(">>>>>>>>开始记录交易日志信息");
-        threadPoolTaskExecutor.execute(new PayLogThread(paymentId,verifySignatureMap));
+
 
         // 5.执行的异步回调业务逻辑
         return asyncService(verifySignatureMap);
@@ -103,7 +93,7 @@ public abstract class AbstractPayCallbackTemplate {
 
     /**
      * 检查交易信息，手动补偿，交易状态修改
-     */
+     *//*
     public boolean examinePaymentTransaction(String paymentId,String payStatus,String  voucher,String paymentChannel){
         log.info("========开始交易操作"+"paymentId:"+paymentId+"payStatus:"+payStatus+"voucher:"+voucher);
         // 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的
@@ -126,9 +116,9 @@ public abstract class AbstractPayCallbackTemplate {
     }
 
 
-    /**
+    *//**
      * 交易成功--基于MQ增加积分
-     */
+     *//*
     @Async
     public void addMQIntegral(PaymentTransactionEntity paymentTransaction) {
         JSONObject jsonObject = new JSONObject();
@@ -138,9 +128,9 @@ public abstract class AbstractPayCallbackTemplate {
         //integralProducer.send(jsonObject);
     }
 
-    /**
+    *//**
      * 交易退款--基于MQ减少积分
-     */
+     *//*
     @Async
     public void deleteMQIntegral(PaymentTransactionEntity paymentTransaction) {
         JSONObject jsonObject = new JSONObject();
@@ -170,6 +160,6 @@ public abstract class AbstractPayCallbackTemplate {
         public void run() {
             payLog(paymentId,verifySignature);
         }
-    }
+    }*/
 
 }

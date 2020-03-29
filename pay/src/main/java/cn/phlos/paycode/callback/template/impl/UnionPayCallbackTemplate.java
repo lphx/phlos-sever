@@ -5,6 +5,7 @@ import cn.phlos.paycode.callback.template.AbstractPayCallbackTemplate;
 import cn.phlos.constant.PayConstant;
 import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;
+import cn.phlos.util.base.BaseResponse;
 import cn.unionpay.acp.sdk.AcpService;
 import cn.unionpay.acp.sdk.LogUtil;
 import cn.unionpay.acp.sdk.SDKConstants;
@@ -38,10 +39,6 @@ import java.util.Map;
 @Slf4j
 public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 
-	@Autowired
-	private PaymentTransactionMapper paymentTransactionMapper;
-	//@Autowired
-	//private IntegralProducer integralProducer;
 
 	@Override
 	public Map<String, String> verifySignature(HttpServletRequest req, HttpServletResponse resp) {
@@ -72,28 +69,27 @@ public class UnionPayCallbackTemplate extends AbstractPayCallbackTemplate {
 	//
 	@Override
 	@Transactional
-	public String asyncService(Map<String, String> verifySignature) {
+	public BaseResponse<JSONObject> asyncService(Map<String, String> verifySignature) {
 
 		String orderId = verifySignature.get("orderId"); // 获取后台通知的数据，其他字段也可用类似方式获取
 		String respCode = verifySignature.get("respCode");
 		String queryId = verifySignature.get("queryId");
-		String payStatus = verifySignature.get("payStatus");
 
 		// 判断respCode=00、A6后，对涉及资金类的交易，请再发起查询接口查询，确定交易成功后更新数据库。
 		System.out.println("orderId:" + orderId + ",respCode:" + respCode);
 		// 1.判断respCode是否为已经支付成功断respCode=00、A6后，
 		if (!(respCode.equals("00") || respCode.equals("A6"))) {
-			return failResult();
+			return setResultError("支付失败");
 		}
 		// 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的
-		boolean result = examinePaymentTransaction(orderId, payStatus, queryId, PayChannelConstant.YINLIAN_PAY);
+		boolean result = examinePaymentTransaction(orderId, PayConstant.PAY_STATUS_SUCCESS, queryId,verifySignature,PayChannelConstant.YINLIAN_PAY);
 		if (!result){
-			return failResult();
+			return setResultError("已经完成交易");
 		}
 		// 3.调用积分服务接口增加积分(处理幂等性问题) MQ
 		//addMQIntegral(paymentTransaction); // 使用MQ
 		//int i = 1 / 0; // 支付状态还是为待支付状态但是 积分缺增加
-		return successResult();
+		return setResultSuccess();
 	}
 
 
