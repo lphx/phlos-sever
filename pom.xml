@@ -12,6 +12,7 @@
         <module>pay</module>
         <module>pay-plugin</module>
         <module>phlos-server-common</module>
+        <module>phlos-stockpile</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

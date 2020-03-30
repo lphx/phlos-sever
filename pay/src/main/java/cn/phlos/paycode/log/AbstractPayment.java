@@ -1,6 +1,7 @@
 package cn.phlos.paycode.log;
 
 import cn.phlos.constant.PayConstant;
+import cn.phlos.mapper.PaymentTransactionLogMapper;
 import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;
 import cn.phlos.mapper.entity.PaymentTransactionLogEntity;
@@ -10,6 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -20,13 +22,12 @@ import org.springframework.stereotype.Component;
 public  class AbstractPayment extends BaseApiService<JSONObject> {
 
 
+    @Autowired
     PaymentTransactionMapper paymentTransactionMapper;
-    {
-        paymentTransactionMapper = SpringContextUtil.getBean(PaymentTransactionMapper.class);
-    }
-//    PaymentTransactionLogService paymentTransactionLogService = new PaymentTransactionLogServiceImpl();
-
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    @Autowired
+    PaymentTransactionLogMapper paymentTransactionLogMapper;
+    @Autowired
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
 
 
@@ -88,7 +89,7 @@ public  class AbstractPayment extends BaseApiService<JSONObject> {
         PaymentTransactionLogEntity paymentTransactionLogEntity = new PaymentTransactionLogEntity();
         paymentTransactionLogEntity.setTransactionId(paymentId);
         paymentTransactionLogEntity.setAsyncLog(verifySignature.toString());
-        paymentTransactionLogService.insertTransactionLog(paymentTransactionLogEntity);
+        paymentTransactionLogMapper.insertTransactionLog(paymentTransactionLogEntity);
         log.info(">>>>>>>>交易日志信息记录成功：{}"+paymentTransactionLogEntity);
     }
 

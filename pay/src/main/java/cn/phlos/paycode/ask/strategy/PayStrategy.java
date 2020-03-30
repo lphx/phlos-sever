@@ -12,7 +12,7 @@ public interface PayStrategy {
 
 
     /**
-     *
+     * 支付
      * @param pymentChannel
      *            渠道参数
      * @param paymentTransacDTO
@@ -22,7 +22,7 @@ public interface PayStrategy {
     public String toPayHtml(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO);
 
     /**
-     *
+     *退货
      * @param pymentChannel
      *            渠道参数
      * @param paymentTransacDTO
@@ -30,5 +30,6 @@ public interface PayStrategy {
      * @return
      */
     public BaseResponse<JSONObject> refund(PaymentChannelEntity pymentChannel, PaymentTransacDTO paymentTransacDTO);
+
 
 }

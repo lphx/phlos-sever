@@ -25,6 +25,11 @@
             <artifactId>pay-plugin-alipay</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>cn.phlos</groupId>
+            <artifactId>phlos-stockpile</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <!--导入工具类项目依赖-->
         <dependency>
             <groupId>cn.phlos</groupId>

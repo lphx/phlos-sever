@@ -116,10 +116,8 @@ public class AliPayStrategy extends AbstractPayment implements PayStrategy {
 
             }
             String result = alipayTradeRefundResponse.getBody();
-            //记录交易信息
-            payLog(out_trade_no,result);
 
-            //更新订单的信息
+            //更新订单的信息和日志
             examinePaymentTransaction(out_trade_no,PayConstant.PAY_STATUS_DELETE,null,result,PayChannelConstant.ALI_PAY);
 
 
