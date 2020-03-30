@@ -7,9 +7,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import cn.phlos.constant.PayConstant;
+import cn.phlos.dto.input.PayCreateTokenDto;
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.dto.out.PaymentChannelDTO;
 import cn.phlos.service.PayContextService;
+import cn.phlos.service.PayCreateTokenService;
 import cn.phlos.service.PaymentChannelService;
 import cn.phlos.service.PaymentTransacInfoService;
 import cn.phlos.util.base.BaseApiService;
@@ -38,6 +40,8 @@ public class PayController extends BaseApiService<JSONObject> {
 	private PaymentTransacInfoService payMentTransacInfoService;
 	@Autowired
 	private PaymentChannelService paymentChannelService;
+	@Autowired
+	private PayCreateTokenService payCreateTokenService;
 	@Autowired
 	private PayContextService payContextService;
 
@@ -92,6 +96,24 @@ public class PayController extends BaseApiService<JSONObject> {
 
 	}
 
+	/**
+	 * 创建交易的token
+	 * @param orderId
+	 * @param payAmount
+	 * @param userId
+	 * @return
+	 */
+	@GetMapping("/testCreatePayToken")
+	public String testCreatePayToken(String orderId, Long payAmount , Long userId){
+		PayCreateTokenDto payCreateTokenDto = new PayCreateTokenDto(payAmount,orderId,userId);
+		System.out.println("payCreateTokenDto = " + payCreateTokenDto);
+		BaseResponse<JSONObject> payToken = payCreateTokenService.createPayToken(payCreateTokenDto);
+		if (!isSuccess(payToken)){
+			return ERROR_500_FTL;
+		}
+		JSONObject data = payToken.getData();
+		return "redirect:/pay?payToken="+data.get("token");
+	}
 
 	/**
 	 * 500页面

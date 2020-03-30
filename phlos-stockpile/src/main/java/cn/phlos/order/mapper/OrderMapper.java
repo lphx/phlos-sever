@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Options;
 public interface OrderMapper {
 
     @Options(useGeneratedKeys = true, keyProperty = "id")
-    @Insert("insert order values(null,#{userId},#{transactionId},#{amount},#{orderItem},#{createBy},now(),null.null)")
+    @Insert("insert into `order` values(null,#{userId},#{transactionId},#{amount},#{state},#{createBy},now(),null,null)")
     public int saveOrder(OrderEntity orderEntity);
 
 }

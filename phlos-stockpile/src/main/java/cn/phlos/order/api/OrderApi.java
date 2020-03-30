@@ -7,6 +7,7 @@ import cn.phlos.util.base.BaseResponse;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
@@ -15,8 +16,13 @@ public class OrderApi  extends BaseApiService<JSONObject> {
     @Autowired
     private OrderService orderService;
 
+    @GetMapping("/")
+    public String test(){
+        return "test";
+    }
+
     @GetMapping("/testOrder")
-    public String testOrder(){
+    public String testOrder(Model model){
         OrderDto orderDto = new OrderDto();
         orderDto.setAmount(40l);
         orderDto.setOrderItem(1l);
@@ -26,9 +32,9 @@ public class OrderApi  extends BaseApiService<JSONObject> {
             return "500";
         }
         JSONObject data = jsonObjectBaseResponse.getData();
-        Long orderId = (Long)data.get("orderId");
-        orderDto.setOrderId(orderId);
-        return null;
+        model.addAttribute("orderId",data.get("orderId"));
+        model.addAttribute("order",orderDto);
+        return "order";
     }
 
 }

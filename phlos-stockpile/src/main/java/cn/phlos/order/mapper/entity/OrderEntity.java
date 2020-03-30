@@ -11,7 +11,7 @@ public class OrderEntity {
     private Long userId;
     private Long transactionId;
     private Long amount;
-    private Long orderItem;
+    private Integer state;
     private String createBy;
     private Date createTime;
     private String updateBy;
