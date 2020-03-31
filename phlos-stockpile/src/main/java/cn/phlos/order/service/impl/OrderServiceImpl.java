@@ -28,4 +28,14 @@ public class OrderServiceImpl extends BaseApiService<JSONObject> implements Orde
         json.put("orderId",orderEntity.getId());
         return setResultSuccess(json);
     }
+
+    @Override
+    public OrderEntity findOrderToState(Long orderId) {
+        return orderMapper.findOrder(orderId);
+    }
+
+    @Override
+    public int updateOrderPaymentState(Long transactionId, Integer state, String updateBy, Long orderId) {
+        return updateOrderPaymentState(transactionId,state,updateBy,orderId);
+    }
 }

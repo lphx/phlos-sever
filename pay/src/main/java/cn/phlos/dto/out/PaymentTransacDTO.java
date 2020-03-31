@@ -1,10 +1,12 @@
 package cn.phlos.dto.out;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
+@ApiModel(value = "交易记录信息实体类")
 public class PaymentTransacDTO {
 
 	/** 主键ID */
@@ -16,7 +18,7 @@ public class PaymentTransacDTO {
 	/** 用户ID */
 	private Long userId;
 	/** 订单号码 */
-	private String orderId;
+	private Long orderId;
 
 	/** 创建时间 */
 	private Date createdTime;

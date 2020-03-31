@@ -5,6 +5,7 @@ import cn.phlos.mapper.PaymentTransactionLogMapper;
 import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;
 import cn.phlos.mapper.entity.PaymentTransactionLogEntity;
+import cn.phlos.order.mapper.OrderMapper;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.core.utils.SpringContextUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -16,6 +17,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 
 @Slf4j
 public  class AbstractPayment extends BaseApiService<JSONObject> {
@@ -25,6 +28,8 @@ public  class AbstractPayment extends BaseApiService<JSONObject> {
     PaymentTransactionMapper paymentTransactionMapper;
     @Autowired
     PaymentTransactionLogMapper paymentTransactionLogMapper;
+    @Autowired
+    OrderMapper orderMapper;
     @Autowired
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
@@ -44,18 +49,21 @@ public  class AbstractPayment extends BaseApiService<JSONObject> {
         log.info("========开始交易操作"+"paymentId:"+paymentId+"payStatus:"+paymentStatus+"voucher:"+voucher);
         // 根据记录 手动补偿 使用支付id调用第三方支付接口查询，支付完成或者退款的
         PaymentTransactionEntity paymentTransaction = paymentTransactionMapper.selectByPaymentId(paymentId);
-        if (paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_SUCCESS)||paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_DELETE)) {
+        if (paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_SUCCESS)||paymentTransaction.getPaymentStatus().equals(PayConstant.PAY_STATUS_REFUND)) {
             // 网络重试中，之前已经支付过
             log.info(">>>>>>>已经交易成果或者退款成功");
             return false;
         }
+        //保存交易记录的数据
         paymentTransactionMapper.updatePaymentStatus( paymentStatus, paymentId, voucher,paymentChannel);
 
         // 4.采用异步形式写入日志到数据库中
         log.info(">>>>>>>>开始记录交易日志信息");
         threadPoolTaskExecutor.execute(new PayLogThread(paymentId,verifySignatureMap));
         log.info("========结束交易操作============");
-
+        // 5.更新订单信息
+        PaymentTransactionEntity paymentTransactionEntity = paymentTransactionMapper.selectByPaymentId(paymentId);
+        orderMapper.updateOrderPaymentState(paymentTransactionEntity.getId(),paymentStatus,paymentTransactionEntity.getUpdatedBy(),paymentTransactionEntity.getOrderId(),new Date());
         return true;
     }
 

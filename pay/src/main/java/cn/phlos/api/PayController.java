@@ -17,6 +17,8 @@ import cn.phlos.service.PaymentTransacInfoService;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
 import cn.phlos.util.constants.Constants;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @description: 支付网站
  */
 @Controller
+@Api(tags = "交易服务接口")
 public class PayController extends BaseApiService<JSONObject> {
 	@Autowired
 	private PaymentTransacInfoService payMentTransacInfoService;
@@ -45,7 +48,8 @@ public class PayController extends BaseApiService<JSONObject> {
 	@Autowired
 	private PayContextService payContextService;
 
-	@RequestMapping("/pay")
+	@GetMapping("/pay")
+	@ApiOperation(value = "支付信息接口")
 	public String pay(String payToken, Model model) {
 		// 1.验证payToken参数
 		if (StringUtils.isEmpty(payToken)) {
@@ -70,8 +74,9 @@ public class PayController extends BaseApiService<JSONObject> {
 
 	@GetMapping("/refund")
 	@ResponseBody
-	public BaseResponse<JSONObject> refund(String paymentId){
-		BaseResponse<JSONObject> refund = payContextService.refund(paymentId);
+	@ApiOperation(value = "退款信息接口")
+	public BaseResponse<JSONObject> refund(Long orderId){
+		BaseResponse<JSONObject> refund = payContextService.refund(orderId);
 		if(!isSuccess(refund)){
 			return setResultError(refund.getMsg());
 		}
@@ -84,7 +89,8 @@ public class PayController extends BaseApiService<JSONObject> {
 	 * @return
 	 * @throws IOException
 	 */
-	@RequestMapping("/payHtml")
+	@GetMapping("/payHtml")
+	@ApiOperation(value = "获取支付渠道信息接口")
 	public void payHtml(String channelId, String payToken, HttpServletResponse response) throws IOException {
 		response.setContentType("text/html; charset=utf-8");
 		BaseResponse<JSONObject> payHtmlData = payContextService.toPayHtml(channelId, payToken);
@@ -104,7 +110,8 @@ public class PayController extends BaseApiService<JSONObject> {
 	 * @return
 	 */
 	@GetMapping("/testCreatePayToken")
-	public String testCreatePayToken(String orderId, Long payAmount , Long userId){
+	@ApiOperation(value = "测试创建token接口")
+	public String testCreatePayToken(Long orderId, Long payAmount , Long userId){
 		PayCreateTokenDto payCreateTokenDto = new PayCreateTokenDto(payAmount,orderId,userId);
 		System.out.println("payCreateTokenDto = " + payCreateTokenDto);
 		BaseResponse<JSONObject> payToken = payCreateTokenService.createPayToken(payCreateTokenDto);

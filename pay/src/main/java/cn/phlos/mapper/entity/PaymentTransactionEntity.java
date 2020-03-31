@@ -20,7 +20,7 @@ public class PaymentTransactionEntity {
 	/** 用户ID */
 	private Long userId;
 	/** 订单号码 */
-	private String orderId;
+	private Long orderId;
 	/** 乐观锁 */
 	private Integer revision;
 	/** 创建人 */

@@ -177,7 +177,7 @@ public class UnionPayStrategy extends AbstractPayment implements PayStrategy {
             //交易已受理，等待接收后台通知更新订单状态,也可以主动发起 查询交易确定交易状态。
             //TODO
             //更新订单的信息和日志
-            examinePaymentTransaction(paymentId, PayConstant.PAY_STATUS_DELETE, null, reqData, PayChannelConstant.YINLIAN_PAY);
+            examinePaymentTransaction(paymentId, PayConstant.PAY_STATUS_REFUND, null, reqData, PayChannelConstant.YINLIAN_PAY);
             return setResultSuccess();
         }
 
@@ -186,7 +186,7 @@ public class UnionPayStrategy extends AbstractPayment implements PayStrategy {
             //TODO
             boolean query = query(pymentChannel, paymentTransacDTO);
             if (query){
-                examinePaymentTransaction(paymentId, PayConstant.PAY_STATUS_DELETE, null, reqData, PayChannelConstant.YINLIAN_PAY);
+                examinePaymentTransaction(paymentId, PayConstant.PAY_STATUS_REFUND, null, reqData, PayChannelConstant.YINLIAN_PAY);
                 return setResultSuccess();
             }else {
                 return setResultError("暂时查询不到交易状态");

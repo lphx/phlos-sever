@@ -12,7 +12,7 @@ public interface PaymentTransacInfoService {
 
     public BaseResponse<PaymentTransacDTO> tokenByPayMentTransac(String token);
 
-    public BaseResponse<PaymentTransacDTO>  refundByPayMent(String payment);
+    public BaseResponse<PaymentTransacDTO> refundByOrderId(Long orderId);
 
     public int insertPaymentTransaction(PaymentTransactionEntity paymentTransactionEntity);
 

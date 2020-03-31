@@ -1,8 +1,10 @@
 package cn.phlos.dto.out;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 @Data
+@ApiModel(value = "支付渠道信息实体类")
 public class PaymentChannelDTO {
 	/** ID */
 	private Integer id;

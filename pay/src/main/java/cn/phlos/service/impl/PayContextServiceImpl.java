@@ -3,6 +3,7 @@ package cn.phlos.service.impl;
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.mapper.PaymentChannelMapper;
 import cn.phlos.mapper.entity.PaymentChannelEntity;
+import cn.phlos.order.service.OrderService;
 import cn.phlos.paycode.ask.factory.StrategyFactory;
 import cn.phlos.paycode.ask.strategy.PayStrategy;
 import cn.phlos.service.PayContextService;
@@ -27,6 +28,8 @@ public class PayContextServiceImpl extends BaseApiService<JSONObject> implements
     @Autowired
     private GenerateToken generateToken;
 
+
+
     @Override
     public BaseResponse<JSONObject> toPayHtml(String channelId, String payToken) {
 
@@ -34,6 +37,9 @@ public class PayContextServiceImpl extends BaseApiService<JSONObject> implements
         PaymentChannelEntity paymentChannelEntity = paymentChannelMapper.selectBychannelId(channelId);
         if (paymentChannelEntity == null){
             setResultError("没有该支付渠道");
+        }
+        if (payToken == null){
+            setResultError("支付超时，重新支付");
         }
 
         // 2.使用payToken获取支付参数
@@ -56,10 +62,10 @@ public class PayContextServiceImpl extends BaseApiService<JSONObject> implements
     }
 
     @Override
-    public BaseResponse<JSONObject> refund(String paymentId) {
+    public BaseResponse<JSONObject> refund(Long oderId) {
 
         //1.根据paymentId查找出要退款的信息--前提是以支付的订单
-        BaseResponse<PaymentTransacDTO> paymentTransacDTOBaseResponse = payMentTransacInfoService.refundByPayMent(paymentId);
+        BaseResponse<PaymentTransacDTO> paymentTransacDTOBaseResponse = payMentTransacInfoService.refundByOrderId(oderId);
         if (!isSuccess(paymentTransacDTOBaseResponse)){
             return setResultError(paymentTransacDTOBaseResponse.getMsg());
         }

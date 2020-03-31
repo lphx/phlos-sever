@@ -68,7 +68,7 @@
     </dependencies>
 
     <!--打成jar包开启-->
-    <!--<build>
+   <!-- <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

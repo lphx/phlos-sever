@@ -8,7 +8,7 @@
 <meta charset="utf-8" />
 <meta name="viewport"
 	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>蚂蚁课堂收银台</title>
+<title>收银台</title>
 <link rel="stylesheet"
 	href="http://pay.mayikt.com/static/static_layui/css/layui.css" />
 <script type="text/javascript"

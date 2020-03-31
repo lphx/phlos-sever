@@ -1,5 +1,6 @@
 package cn.phlos.service.impl;
 
+import cn.phlos.order.mapper.OrderMapper;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
 
@@ -24,6 +25,8 @@ public class PayCreateTokenServiceImpl extends BaseApiService<JSONObject> implem
     private PaymentTransactionMapper paymentTransactionMapper;
 
     @Autowired
+    private OrderMapper orderMapper;
+    @Autowired
     private GenerateToken generateToken;
 
     /**
@@ -34,8 +37,8 @@ public class PayCreateTokenServiceImpl extends BaseApiService<JSONObject> implem
     @Override
     public BaseResponse<JSONObject> createPayToken(PayCreateTokenDto payCreateTokenDto) {
         //1.判断订单，金额，用户id是否为空
-        String orderId = payCreateTokenDto.getOrderId();
-        if (StringUtils.isEmpty(orderId)) {
+        Long orderId = payCreateTokenDto.getOrderId();
+        if (orderId == null) {
             return  setResultError("订单号码不能为空!");
         }
         Long payAmount = payCreateTokenDto.getPayAmount();
@@ -47,7 +50,7 @@ public class PayCreateTokenServiceImpl extends BaseApiService<JSONObject> implem
             return setResultError("userId不能为空!");
         }
 
-        //根据orderId去数据库查找是否有新的订单信息
+        //根据orderId去数据库查找是否有新的订单交易信息为未支付的
         PaymentTransactionEntity paymentOrder = paymentTransactionMapper.selectByOrderId(orderId);
         Long payId;
         if (paymentOrder != null){

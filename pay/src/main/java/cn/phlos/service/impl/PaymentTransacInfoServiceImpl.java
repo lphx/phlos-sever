@@ -4,6 +4,8 @@ import cn.phlos.constant.PayConstant;
 import cn.phlos.dto.out.PaymentTransacDTO;
 import cn.phlos.mapper.PaymentTransactionMapper;
 import cn.phlos.mapper.entity.PaymentTransactionEntity;
+import cn.phlos.order.mapper.OrderMapper;
+import cn.phlos.order.mapper.entity.OrderEntity;
 import cn.phlos.service.PaymentTransacInfoService;
 import cn.phlos.util.base.BaseApiService;
 import cn.phlos.util.base.BaseResponse;
@@ -16,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -30,6 +31,9 @@ public class PaymentTransacInfoServiceImpl extends BaseApiService<PaymentTransac
     private GenerateToken generateToken;
     @Autowired
     private PaymentTransactionMapper paymentTransactionMapper;
+
+    @Autowired
+    private OrderMapper orderMapper;
     
     @Override
     public BaseResponse<PaymentTransacDTO> tokenByPayMentTransac(String token) {
@@ -48,7 +52,7 @@ public class PaymentTransacInfoServiceImpl extends BaseApiService<PaymentTransac
             return setResultError("未查询到支付信息");
         }
         Integer paymentStatus = paymentTransactionEntity.getPaymentStatus();
-        if (paymentStatus == PayConstant.PAY_STATUS_SUCCESS || paymentStatus == PayConstant.PAY_STATUS_DELETE){
+        if (paymentStatus == PayConstant.PAY_STATUS_SUCCESS || paymentStatus == PayConstant.PAY_STATUS_REFUND){
             return setResultError("该订单已经支付");
         }
 
@@ -57,20 +61,21 @@ public class PaymentTransacInfoServiceImpl extends BaseApiService<PaymentTransac
     }
 
     @Override
-    public BaseResponse<PaymentTransacDTO> refundByPayMent(String payment) {
-        //1.查询已支付的信息
-        PaymentTransactionEntity paymentTransactionEntity = paymentTransactionMapper.selectByPaymentId(payment);
-        if (paymentTransactionEntity == null){
+    public BaseResponse<PaymentTransacDTO> refundByOrderId(Long orderId) {
+        //1.查询订单信息
+
+        //3.根据订单去查询支付的交易信息
+        OrderEntity orderToState = orderMapper.findOrder(orderId);
+        //2.判断该订单支付的状态
+        if (orderToState == null){
             return setResultError("未查询到支付信息");
         }
-        if (paymentTransactionEntity.getPaymentStatus() == PayConstant.PAY_STATUS_DELETE){
-            return setResultError("该订单已经退款");
-        }
-        if (paymentTransactionEntity.getPaymentStatus() != PayConstant.PAY_STATUS_SUCCESS){
-            return setResultError("该订单处于未付款状态");
+        if (!(orderToState.getState() == PayConstant.PAY_STATUS_AGREE_REFUND)){
+            return setResultError("该订单正在退款中。。。。");
         }
 
         //生成新的交易信息
+        PaymentTransactionEntity paymentTransactionEntity = paymentTransactionMapper.selectByOrderIdAndPayment(orderId);
         PaymentTransactionEntity paymentEntity = new PaymentTransactionEntity();
         paymentEntity.setOrderId(paymentTransactionEntity.getOrderId());
         paymentEntity.setPayAmount(paymentTransactionEntity.getPayAmount());

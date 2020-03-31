@@ -75,7 +75,7 @@ public class AliPayStrategy extends AbstractPayment implements PayStrategy {
             String result = alipayClient.pageExecute(alipayRequest).getBody();
             return result;
         } catch (Exception e) {
-            return null;
+            return "";
         }
 
     }
@@ -112,25 +112,21 @@ public class AliPayStrategy extends AbstractPayment implements PayStrategy {
         //请求
         try {
             AlipayTradeRefundResponse alipayTradeRefundResponse = alipayClient.execute(alipayRequest);
-            if (alipayTradeRefundResponse.isSuccess()){
-
+            if (!alipayTradeRefundResponse.isSuccess()){
+                return setResultError("退款失败");
             }
             String result = alipayTradeRefundResponse.getBody();
 
             //更新订单的信息和日志
-            examinePaymentTransaction(out_trade_no,PayConstant.PAY_STATUS_DELETE,null,result,PayChannelConstant.ALI_PAY);
+            examinePaymentTransaction(paymentTransacDTO.getPaymentId(),PayConstant.PAY_STATUS_REFUND,null,result,PayChannelConstant.ALI_PAY);
 
+            //更新订单信息
 
         }  catch (Exception e) {
             e.printStackTrace();
         }
 
-        //输出
-       // out.println(result);
-
-
-
-        return null;
+        return setResultSuccess("退款成功");
     }
 
 

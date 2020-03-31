@@ -30,7 +30,10 @@ public interface PaymentTransactionMapper {
 	public int updatePaymentStatus(@Param("paymentStatus") Integer paymentStatus, @Param("paymentId") String paymentId, @Param("tradeNo") String tradeNo ,@Param("paymentChannel")String paymentChannel);
 
 	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE order_id=#{orderId} AND payment_status=0;")
-	public PaymentTransactionEntity selectByOrderId(String orderId);
+	public PaymentTransactionEntity selectByOrderId(Long orderId);
+
+	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE order_id=#{orderId} AND payment_status=1 limit 0,1;")
+	public PaymentTransactionEntity selectByOrderIdAndPayment(Long orderId);
 
 	@Select("SELECT ID AS ID ,pay_amount AS payAmount,payment_status AS paymentStatus,user_id AS userId, order_id AS orderId , created_time as createdTime ,partypay_id as partyPayId , payment_id as paymentId ,payment_channel as paymentChannel ,trade_no as tradeNo  FROM payment_transaction WHERE payment_id=#{paymentId} and paymentStatus=0 ;")
 	public PaymentTransactionEntity selectByPaymentNoPayment(String paymentId);
