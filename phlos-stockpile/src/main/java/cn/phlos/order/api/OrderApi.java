@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
 
 @Controller
 public class OrderApi  extends BaseApiService<JSONObject> {
@@ -16,13 +19,15 @@ public class OrderApi  extends BaseApiService<JSONObject> {
     @Autowired
     private OrderService orderService;
 
+
     @GetMapping("/")
     public String test(){
         return "test";
     }
 
     @GetMapping("/testOrder")
-    public String testOrder(Model model){
+    @ResponseBody
+    public String testOrder(String products,Model model){
         OrderDto orderDto = new OrderDto();
         orderDto.setAmount(40l);
         orderDto.setOrderItem(1l);
@@ -31,9 +36,13 @@ public class OrderApi  extends BaseApiService<JSONObject> {
         if (!isSuccess(jsonObjectBaseResponse)){
             return "500";
         }
-        JSONObject data = jsonObjectBaseResponse.getData();
-        model.addAttribute("orderId",data.get("orderId"));
-        model.addAttribute("order",orderDto);
+        return "redirect:/findOrder";
+    }
+
+    @GetMapping("/findOrder")
+    public String findOrder(Model model){
+        List<OrderDto> orderDtos = orderService.selectOrder();
+        model.addAttribute("oderList",orderDtos);
         return "order";
     }
 

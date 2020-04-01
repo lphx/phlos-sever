@@ -1,9 +1,11 @@
 package cn.phlos.order.mapper;
 
+import cn.phlos.order.dto.OrderDto;
 import cn.phlos.order.mapper.entity.OrderEntity;
 import org.apache.ibatis.annotations.*;
 
 import java.util.Date;
+import java.util.List;
 
 @Mapper
 public interface OrderMapper {
@@ -30,4 +32,12 @@ public interface OrderMapper {
      */
     @Select("SELECT id as id ,user_id as userId ,transaction_id as transactionId ,amount as amount ,state as state ,create_by as createBy ,create_time as createTime ,update_by as updateBy ,update_time as update_time FROM `order` WHERE id=#{orderId}  limit 0,1")
     public OrderEntity findOrder(@Param("orderId")Long orderId);
+
+    /**
+     * 查询订单
+     *
+     * @return
+     */
+    @Select("SELECT id as id ,user_id as userId ,transaction_id as transactionId ,amount as amount ,state as state ,create_by as createBy ,create_time as createTime ,update_by as updateBy ,update_time as update_time FROM `order`")
+    public List<OrderDto> selectOrder();
 }

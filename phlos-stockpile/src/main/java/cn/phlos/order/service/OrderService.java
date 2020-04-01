@@ -7,6 +7,8 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.core.annotation.Order;
 
+import java.util.List;
+
 public interface OrderService {
 
     public BaseResponse<JSONObject> saveOrder(OrderDto orderDto);
@@ -14,4 +16,6 @@ public interface OrderService {
     public OrderEntity findOrderToState(Long orderId);
 
     public int updateOrderPaymentState(Long transactionId, Integer state, String updateBy, Long orderId);
+
+    public List<OrderDto> selectOrder();
 }

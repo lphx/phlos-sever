@@ -10,6 +10,8 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class OrderServiceImpl extends BaseApiService<JSONObject> implements OrderService {
 
@@ -38,4 +40,11 @@ public class OrderServiceImpl extends BaseApiService<JSONObject> implements Orde
     public int updateOrderPaymentState(Long transactionId, Integer state, String updateBy, Long orderId) {
         return updateOrderPaymentState(transactionId,state,updateBy,orderId);
     }
+
+    @Override
+    public List<OrderDto> selectOrder() {
+        return orderMapper.selectOrder();
+    }
+
+
 }

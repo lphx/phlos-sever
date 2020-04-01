@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @EnableSwagger2Doc
-@MapperScan({"cn.phlos.mapper","cn.phlos.order.mapper"})
+@MapperScan({"cn.phlos.mapper","cn.phlos.order.mapper","cn.phlos.product.mapper"})
 public class PayApp  {
 
     public static void main(String[] args) {
