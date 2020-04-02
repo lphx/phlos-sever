@@ -23,7 +23,7 @@ public interface UserMapper {
     UserDo existmobile(@Param("mobile") String mobile);
 
     @Select("SELECT user_id AS userId ,mobile AS mobile,email AS email,password AS password, user_name AS userName ,sex AS sex ,age AS age ,create_time AS createTime,is_availble AS isAvailble,pic_img AS picImg,qq_openid AS qqOpenid,wx_openid AS wxOpenid "
-            + "  FROM `user`  WHERE mobile=#{0} and password=#{1};")
+            + "  FROM `user`  WHERE mobile=#{mobile} and password=#{password};")
     UserDo login(@Param("mobile") String mobile, @Param("password") String password);
 
     @Select("SELECT user_id AS userId ,mobile AS mobile,email AS email,password AS password, user_name AS user_name ,sex AS sex ,age AS age ,create_time AS createTime,is_availble AS isAvailble,pic_img AS picImg,qq_openid AS qqOpenid,wx_openid AS wxOpenid"
