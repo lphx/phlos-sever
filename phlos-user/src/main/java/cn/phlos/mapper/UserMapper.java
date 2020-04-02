@@ -13,8 +13,11 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface UserMapper {
 
-    @Insert("INSERT INTO `user` VALUES (null,#{mobile}, #{email}, #{password}, #{userName}, null, null, null, '1', null, null, null);")
+    @Insert("INSERT INTO `user` VALUES (null,#{mobile}, #{email}, #{password}, #{userName}, null, null, null,null, '1', null, null, null);")
     int register(UserDo userDo);
+
+    @Insert("INSERT INTO `user` VALUES (null,#{mobile}, #{email}, #{password}, #{userName}, #{sex}, #{age}, #{createTime},#{updateTime}, #{isAvailble}, #{picImg}, #{qqOpenid}, #{wxOpenid});")
+    int saveUser(UserDo userDo);
 
     @Select("SELECT * FROM `user` WHERE mobile=#{mobile};")
     UserDo existmobile(@Param("mobile") String mobile);
