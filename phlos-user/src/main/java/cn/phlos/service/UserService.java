@@ -18,7 +18,7 @@ public interface UserService {
 
     public BaseResponse<JSONObject> login(UserLoginInpDTO userLoginInpDTO);
 
-    public BaseResponse<UserOutputDto> existMobile(String mobile);
+    public BaseResponse existMobile(String mobile);
 
     public BaseResponse<UserOutputDto> getInfo(String token);
 

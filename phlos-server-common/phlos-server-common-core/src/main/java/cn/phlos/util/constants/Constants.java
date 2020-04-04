@@ -29,7 +29,7 @@ public interface Constants {
 	Integer HTTP_RES_CODE_EXISTMOBILE_203 = 203;
 
 	// token
-	String MEMBER_TOKEN_KEYPREFIX = "mt.mb.login";
+	String USER_TOKEN_KEYPREFIX = "phlos.cn.login";
 
 	// 安卓的登陆类型
 	String MEMBER_LOGIN_TYPE_ANDROID = "Android";

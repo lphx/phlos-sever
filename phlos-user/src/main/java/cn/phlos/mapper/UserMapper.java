@@ -20,7 +20,7 @@ public interface UserMapper {
     int saveUser(UserDo userDo);
 
     @Select("SELECT * FROM `user` WHERE mobile=#{mobile};")
-    UserDo existmobile(@Param("mobile") String mobile);
+    UserDo existMobile(@Param("mobile") String mobile);
 
     @Select("SELECT user_id AS userId ,mobile AS mobile,email AS email,password AS password, user_name AS userName ,sex AS sex ,age AS age ,create_time AS createTime,is_availble AS isAvailble,pic_img AS picImg,qq_openid AS qqOpenid,wx_openid AS wxOpenid "
             + "  FROM `user`  WHERE mobile=#{mobile} and password=#{password};")
@@ -28,7 +28,7 @@ public interface UserMapper {
 
     @Select("SELECT user_id AS userId ,mobile AS mobile,email AS email,password AS password, user_name AS user_name ,sex AS sex ,age AS age ,create_time AS createTime,is_availble AS isAvailble,pic_img AS picImg,qq_openid AS qqOpenid,wx_openid AS wxOpenid"
             + " FROM `user` WHERE user_id=#{userId}")
-    UserDo findByuserId(@Param("userId") Long userId);
+    UserDo findByUserId(@Param("userId") Long userId);
 
     @Select("SELECT user_id AS userId ,mobile AS mobile,email AS email,password AS password, user_name AS user_name ,sex AS sex ,age AS age ,create_time AS createTime,is_availble AS isAvailble,pic_img AS picImg,qq_openid AS qqOpenid,wx_openid AS wxOpenid"
             + " FROM `user` WHERE qq_openid=#{qqOpenid}")
