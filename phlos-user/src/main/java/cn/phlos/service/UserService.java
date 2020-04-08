@@ -23,4 +23,6 @@ public interface UserService {
     public BaseResponse<UserOutputDto> getInfo(String token);
 
     public BaseResponse<UserOutputDto> ssoLogin(UserLoginInpDTO userLoginInpDTO);
+
+    public BaseResponse<JSONObject> createCodeToMobile(String mobile);
 }

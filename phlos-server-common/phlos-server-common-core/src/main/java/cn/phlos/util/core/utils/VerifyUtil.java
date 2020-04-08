@@ -38,4 +38,17 @@ public class VerifyUtil {
         return redisUtil.getString(mobile);
     }
 
+    public Boolean delete(String mobile){
+        return redisUtil.delKey(mobile);
+    }
+
+    /**
+     * 生成6位数字的验证码
+     * @return
+     */
+    public String createCode(){
+        String random=(int)((Math.random()*9+1)*100000)+"";
+        return random;
+    }
+
 }

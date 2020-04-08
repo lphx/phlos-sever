@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -19,8 +20,9 @@ import org.springframework.web.bind.annotation.*;
  * @Author: Penghong Li
  * @Date: Create in 9:34 2020/4/2
  */
-@Api(tags = "用户api接口层")
+
 @RestController
+@Api(tags = "用户api接口层")
 public class UserApi {
 
     @Autowired
@@ -34,8 +36,7 @@ public class UserApi {
      */
     @PostMapping("/register")
     @ApiOperation(value = "会员用户注册信息接口")
-    BaseResponse<JSONObject> register(@RequestBody UserInputDto userInpDTO,
-                                      @RequestParam("registerCode") String registerCode){
+    BaseResponse<JSONObject> register(@RequestBody UserInputDto userInpDTO,@RequestParam("registerCode") String registerCode){
         return userService.register(userInpDTO,registerCode);
     }
 
@@ -73,9 +74,16 @@ public class UserApi {
      * @return
      */
     @GetMapping("/getUserInfo")
-    @ApiOperation(value = "/getUserInfo")
+    @ApiOperation(value = "根据token查询用户信息")
     BaseResponse<UserOutputDto> getInfo(@RequestParam("token") String token){
         return userService.getInfo(token);
+    }
+
+
+    @GetMapping("/createCode")
+    @ApiOperation(value = "根据手机号生成验证码")
+    public BaseResponse<JSONObject> createCodeToMobile(String mobile){
+        return userService.createCodeToMobile(mobile);
     }
 
 }

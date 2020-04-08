@@ -18,6 +18,7 @@ import cn.phlos.util.core.type.TypeCastHelper;
 import cn.phlos.util.core.utils.AESUtil;
 import cn.phlos.util.core.utils.MD5Util;
 import cn.phlos.util.core.utils.RegexUtils;
+import cn.phlos.util.core.utils.VerifyUtil;
 import cn.phlos.util.token.GenerateToken;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,9 @@ public class UserServiceImpl extends BaseApiService implements UserService {
     @Autowired
     private RedisDataSoureceTransaction redisDataSoureceTransaction;
 
+    @Autowired
+    private  VerifyUtil verifyUtil;
+
     @Override
     public BaseResponse<JSONObject> register(UserInputDto userInputDto, String registerCode) {
         log.info("用户注册：userInputDto：{} |registerCode:{}",userInputDto.toString(),registerCode);
@@ -58,7 +62,7 @@ public class UserServiceImpl extends BaseApiService implements UserService {
         }
 
         String mobile = userInputDto.getMobile();
-        if (StringUtils.isEmpty(mobile)|| RegexUtils.checkMobile(mobile)){
+        if (StringUtils.isEmpty(mobile)|| !RegexUtils.checkMobile(mobile)){
             return setResultError("手机号码格式错误");
         }
 
@@ -72,10 +76,14 @@ public class UserServiceImpl extends BaseApiService implements UserService {
         }
 
         //2.通过手机号获取验证码
-
-
-        //3.使用AES对称加密算法
-        String newPassword = AESUtil.bcAESEncryption(password);
+        String code = verifyUtil.findMobileVerify(mobile);
+        if (StringUtils.isEmpty(code)){
+            return setResultError("验证码错误");
+        }
+        //删除验证码
+       verifyUtil.delete(mobile);
+        //3.使用A加密算法
+        String newPassword = MD5Util.MD5(password);
         userInputDto.setPassword(newPassword);
 
         // 4.调用数据库插入数据 将请求的dto参数转换DO
@@ -113,7 +121,7 @@ public class UserServiceImpl extends BaseApiService implements UserService {
         }
 
         // 2.对登陆密码实现解密
-        String newPassWord = AESUtil.bcDecode(password);
+        String newPassWord = MD5Util.MD5(password);
         // 3.使用手机号码+密码查询数据库 ，判断用户是否存在
         UserDo userDo = userMapper.login(mobile, newPassWord);
         if (userDo == null) {
@@ -220,5 +228,14 @@ public class UserServiceImpl extends BaseApiService implements UserService {
     @Override
     public BaseResponse<UserOutputDto> ssoLogin(UserLoginInpDTO userLoginInpDTO) {
         return null;
+    }
+
+    @Override
+    public BaseResponse<JSONObject> createCodeToMobile(String mobile) {
+        String code = verifyUtil.createCode();
+        verifyUtil.addMobileVerify(mobile,code);
+        log.info("发送验证码：mobile：{} | code:{}",mobile,code);
+
+        return setResultSuccess(code);
     }
 }

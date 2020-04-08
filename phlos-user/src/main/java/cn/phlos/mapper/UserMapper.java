@@ -26,6 +26,10 @@ public interface UserMapper {
             + "  FROM `user`  WHERE mobile=#{mobile} and password=#{password};")
     UserDo login(@Param("mobile") String mobile, @Param("password") String password);
 
+    @Select("SELECT user_id AS userId ,mobile AS mobile,email AS email,password AS password, user_name AS userName ,sex AS sex ,age AS age ,create_time AS createTime,is_availble AS isAvailble,pic_img AS picImg,qq_openid AS qqOpenid,wx_openid AS wxOpenid "
+            + "  FROM `user`  WHERE mobile=#{mobile};")
+    UserDo findPasswordByMobile(@Param("mobile") String mobile);
+
     @Select("SELECT user_id AS userId ,mobile AS mobile,email AS email,password AS password, user_name AS user_name ,sex AS sex ,age AS age ,create_time AS createTime,is_availble AS isAvailble,pic_img AS picImg,qq_openid AS qqOpenid,wx_openid AS wxOpenid"
             + " FROM `user` WHERE user_id=#{userId}")
     UserDo findByUserId(@Param("userId") Long userId);
@@ -34,7 +38,7 @@ public interface UserMapper {
             + " FROM `user` WHERE qq_openid=#{qqOpenid}")
     UserDo findByOpenId(@Param("qqOpenid") String qqOpenid);
 
-    @Update("update `user` set qq_openid =#{0} WHERE user_id=#{1}")
+    @Update("update `user` set qq_openid =#{qqOpenid} WHERE user_id=#{userId}")
     int updateUserOpenId(@Param("qqOpenid") String qqOpenid, @Param("userId") Long userId);
 
 }
